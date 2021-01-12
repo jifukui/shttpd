@@ -25,6 +25,7 @@ typedef struct ssl_ctx_st SSL_CTX;
 /*
  * Dynamically loaded SSL functionality
  */
+//动态加载sll功能
 struct ssl_func {
 	const char	*name;		/* SSL function name	*/
 	union variant	ptr;		/* Function pointer	*/

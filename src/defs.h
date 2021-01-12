@@ -236,9 +236,10 @@ enum {
 
 /*
  * SHTTPD context
+ * http 上下文
  */
 struct shttpd_ctx {
-	SSL_CTX		*ssl_ctx;	/* SSL context			*/
+	SSL_CTX		*ssl_ctx;	/* SSL context ssl上下文			*/
 
 	struct llhead	registered_uris;/* User urls			*/
 	struct llhead	error_handlers;	/* Embedded error handlers	*/
@@ -255,7 +256,9 @@ struct shttpd_ctx {
 	rtems_id         mutex;
 #endif /* _WIN32 */
 };
-
+/**
+ * 监听结构体
+*/
 struct listener {
 	struct llhead		link;
 	struct shttpd_ctx	*ctx;	/* Context that socket belongs	*/
@@ -286,6 +289,9 @@ enum {CTL_PASS_SOCKET, CTL_WAKEUP};
 /*
  * IPv4 ACL entry. Specifies subnet with deny/allow flag
  */
+/**
+ * 访问控制列表
+*/
 struct acl {
 	struct llhead	link;
 	uint32_t	ip;		/* IP, in network byte order	*/

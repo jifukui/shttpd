@@ -1829,14 +1829,18 @@ void _shttpd_usage(const char *prog)
 
 	exit(EXIT_FAILURE);
 }
-/***/
+/**
+ * 设置服务器的参数
+*/
 static void set_opt(struct shttpd_ctx *ctx, const char *opt, const char *value)
 {
 	const struct opt	*o;
 
 	o = find_opt(opt);
 	if (ctx->options[o->index] != NULL)
+	{
 		free(ctx->options[o->index]);
+	}
 	ctx->options[o->index] = _shttpd_strdup(value);
 }
 /**
