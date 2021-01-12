@@ -1421,9 +1421,8 @@ set_uid(struct shttpd_ctx *ctx, const char *uid)
 #endif /* !_WIN32 */
 	return (TRUE);
 }
-
-static int
-set_acl(struct shttpd_ctx *ctx, const char *s)
+/***/
+static int set_acl(struct shttpd_ctx *ctx, const char *s)
 {
 	struct acl	*acl = NULL;
 	char		flag;
@@ -1491,9 +1490,9 @@ static int set_ssl(struct shttpd_ctx *ctx, const char *pem)
 	if ((CTX = SSL_CTX_new(SSLv23_server_method())) == NULL)
 		_shttpd_elog(E_LOG, NULL, "SSL_CTX_new error");
 	else if (SSL_CTX_use_certificate_file(CTX, pem, SSL_FILETYPE_PEM) == 0)
-		_shttpd_elog(E_LOG, NULL, "cannot open %s", pem);
+		_shttpd_elog(E_LOG, NULL, "cannot open certificate %s", pem);
 	else if (SSL_CTX_use_PrivateKey_file(CTX, pem, SSL_FILETYPE_PEM) == 0)
-		_shttpd_elog(E_LOG, NULL, "cannot open %s", pem);
+		_shttpd_elog(E_LOG, NULL, "cannot open PrivateKey %s", pem);
 	else
 		retval = TRUE;
 
