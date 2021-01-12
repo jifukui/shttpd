@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	struct shttpd_ctx	*ctx;
 #ifdef _DEBUG
 	printf("have DEBUG\r\n");
-#elif
+#else
 	printf("not have DEBUG\r\n");
 #endif
 #if !defined(NO_AUTH)
