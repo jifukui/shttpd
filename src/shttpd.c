@@ -1463,9 +1463,9 @@ set_acl(struct shttpd_ctx *ctx, const char *s)
 #ifndef NO_SSL
 /*
  * Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
+ * 动态加载ssl库
  */
-static int
-set_ssl(struct shttpd_ctx *ctx, const char *pem)
+static int set_ssl(struct shttpd_ctx *ctx, const char *pem)
 {
 	SSL_CTX		*CTX;
 	void		*lib;
@@ -1473,6 +1473,7 @@ set_ssl(struct shttpd_ctx *ctx, const char *pem)
 	int		retval = FALSE;
 
 	/* Load SSL library dynamically */
+	printf("the ssl lib is %s\r\n",SSL_LIB);
 	if ((lib = dlopen(SSL_LIB, RTLD_LAZY)) == NULL) {
 		_shttpd_elog(E_LOG, NULL, "set_ssl: cannot load %s", SSL_LIB);
 		return (FALSE);
@@ -1669,9 +1670,10 @@ static const struct opt {
 #endif /* !NO_THREADS */
 	{-1, NULL, NULL, NULL, NULL}
 };
-
-static const struct opt *
-find_opt(const char *opt_name)
+/**
+ * 根据参数名查找参数
+*/
+static const struct opt * find_opt(const char *opt_name)
 {
 	int	i;
 
@@ -1684,22 +1686,27 @@ find_opt(const char *opt_name)
 	/* UNREACHABLE */
 	return (NULL);
 }
-
-int
-shttpd_set_option(struct shttpd_ctx *ctx, const char *opt, const char *val)
+/**
+ * 设置参数
+*/
+int shttpd_set_option(struct shttpd_ctx *ctx, const char *opt, const char *val)
 {
+	//获取此属性的值
 	const struct opt	*o = find_opt(opt);
 	int			retval = TRUE;
 
 	/* Call option setter first, so it can use both new and old values */
+	//如果此属性的设置函数不为空调用此设置函数设置值
 	if (o->setter != NULL)
 		retval = o->setter(ctx, val);
 
 	/* Free old value if any */
+	//如果老的值存在则释放此值
 	if (ctx->options[o->index] != NULL)
 		free(ctx->options[o->index]);
 	
 	/* Set new option value */
+	//设置新的值
 	ctx->options[o->index] = val ? _shttpd_strdup(val) : NULL;
 
 	return (retval);

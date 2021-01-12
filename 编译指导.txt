@@ -1,0 +1,4 @@
+Linux的编译
+LIBS="-lpthread -ldl " make unix
+样例程序的编译
+gcc example.c -I ../src  ../src/libshttpd.a -ldl -lpthread
