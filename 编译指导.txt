@@ -1,7 +1,8 @@
-LinuxµÄ±àÒë
+Linuxï¿½Ä±ï¿½ï¿½ï¿½
 LIBS="-lpthread -ldl " make unix
-ÑùÀı³ÌĞòµÄ±àÒë
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
 gcc example.c -I ../src  ../src/libshttpd.a -ldl -lpthread
-Éú³ÉÖ¤Êé
+ï¿½ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½
 openssl req -new -x509 -key rsa_aes_private.pem -out ji.pem -days 3650
-ÕâÀïĞèÒªµÄÖ¤ÊéÊÇĞèÒªÓĞÖ¤ÊéºÍË½Ô¿µÄÎÄ¼ş
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ö¤ï¿½ï¿½ï¿½Ë½Ô¿ï¿½ï¿½ï¿½Ä¼ï¿½
+-D_DEBUG

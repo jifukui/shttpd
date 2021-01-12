@@ -1,4 +1,14 @@
 string.c shttpd.c log.c auth.c md5.c cgi.c io_ssi.c io_file.c io_socket.c io_ssl.c io_emb.c io_dir.c io_cgi.c
+编译指导
+Linux环境下编译
+LIBS="-lpthread -ldl " make unix
+示例程序的编译
+gcc example.c -I ../src  ../src/libshttpd.a -ldl -lpthread
+生成pem
+openssl req -new -x509 -key rsa_aes_private.pem -out ji.pem -days 3650
+pem包含私钥和证书
+-D_DEBUG
+
 1.string.c
 字符串的相关处理函数
 2.log.c

@@ -33,7 +33,11 @@ static void signal_handler(int sig_num)
 int main(int argc, char *argv[])
 {
 	struct shttpd_ctx	*ctx;
-
+#ifdef _DEBUG
+	printf("have DEBUG\r\n");
+#elif
+	printf("not have DEBUG\r\n");
+#endif
 #if !defined(NO_AUTH)
 	if (argc > 1 && argv[1][0] == '-' && argv[1][1] == 'A') {
 		if (argc != 6)

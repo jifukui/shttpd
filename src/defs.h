@@ -17,7 +17,7 @@
 #include "md5.h"
 #include "config.h"
 #include "shttpd.h"
-
+// #define _DEBUG
 #define	NELEMS(ar)	(sizeof(ar) / sizeof(ar[0]))
 
 #ifdef _DEBUG
