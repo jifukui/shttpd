@@ -15,8 +15,10 @@
  * Stringify binary data. Output buffer must be twice as big as input,
  * because each byte takes 2 bytes in string representation
  */
-static void
-bin2str(char *to, const unsigned char *p, size_t len)
+/**
+ * 二进制数据转换为字符串
+*/
+static void bin2str(char *to, const unsigned char *p, size_t len)
 {
 	const char	*hex = "0123456789abcdef";
 
@@ -30,8 +32,8 @@ bin2str(char *to, const unsigned char *p, size_t len)
  * Return stringified MD5 hash for list of vectors.
  * buf must point to at least 32-bytes long buffer
  */
-static void
-md5(char *buf, ...)
+/**将字符串转换为MD5形式*/
+static void md5(char *buf, ...)
 {
 	unsigned char	hash[16];
 	const struct vec *v;
@@ -59,8 +61,10 @@ md5(char *buf, ...)
 /*
  * Compare to vectors. Return 1 if they are equal
  */
-static int
-vcmp(const struct vec *v1, const struct vec *v2)
+/**
+ * 判断两个容器是否相等
+*/
+static int vcmp(const struct vec *v1, const struct vec *v2)
 {
 	return (v1->len == v2->len && !memcmp(v1->ptr, v2->ptr, v1->len));
 }
@@ -88,9 +92,10 @@ static const struct auth_keyword {
 	{offsetof(struct digest, nonce),	{"nonce=",	6}},
 	{0,					{NULL,		0}}
 };
-
-static void
-parse_authorization_header(const struct vec *h, struct digest *dig)
+/**
+ * 解析加密头
+*/
+static void parse_authorization_header(const struct vec *h, struct digest *dig)
 {
 	const unsigned char	*p, *e, *s;
 	struct vec		*v, vec;
@@ -145,8 +150,10 @@ parse_authorization_header(const struct vec *h, struct digest *dig)
 /*
  * Check the user's password, return 1 if OK
  */
-static int
-check_password(int method, const struct vec *ha1, const struct digest *digest)
+/**
+ * 密码校验
+*/
+static int check_password(int method, const struct vec *ha1, const struct digest *digest)
 {
 	char		a2[32], resp[32];
 	struct vec	vec_a2;
@@ -169,9 +176,10 @@ check_password(int method, const struct vec *ha1, const struct digest *digest)
 
 	return (!memcmp(resp, digest->resp.ptr, 32));
 }
-
-static FILE *
-open_auth_file(struct shttpd_ctx *ctx, const char *path)
+/**
+ * 打开认证文件
+*/
+static FILE * open_auth_file(struct shttpd_ctx *ctx, const char *path)
 {
 	char 		name[FILENAME_MAX];
 	const char	*p, *e;
@@ -217,8 +225,10 @@ open_auth_file(struct shttpd_ctx *ctx, const char *path)
  * Parse the line from htpasswd file. Line should be in form of
  * "user:domain:ha1". Fill in the vector values. Return 1 if successful.
  */
-static int
-parse_htpasswd_line(const char *s, struct vec *user,
+/**
+ * 解析密码行
+*/
+static int parse_htpasswd_line(const char *s, struct vec *user,
 				struct vec *domain, struct vec *ha1)
 {
 	user->len = domain->len = ha1->len = 0;
@@ -243,8 +253,10 @@ parse_htpasswd_line(const char *s, struct vec *user,
 /*
  * Authorize against the opened passwords file. Return 1 if authorized.
  */
-static int
-authorize(struct conn *c, FILE *fp)
+/**
+ * 认证
+*/
+static int authorize(struct conn *c, FILE *fp)
 {
 	struct vec 	*auth_vec = &c->ch.auth.v_vec;
 	struct vec	*user_vec = &c->ch.user.v_vec;
@@ -278,9 +290,10 @@ authorize(struct conn *c, FILE *fp)
 
 	return (ok);
 }
-
-int
-_shttpd_check_authorization(struct conn *c, const char *path)
+/**
+ * 服务器进行认证
+*/
+int _shttpd_check_authorization(struct conn *c, const char *path)
 {
 	FILE		*fp = NULL;
 	int		len, n, authorized = 1;
@@ -318,9 +331,10 @@ _shttpd_check_authorization(struct conn *c, const char *path)
 
 	return (authorized);
 }
-
-int
-_shttpd_is_authorized_for_put(struct conn *c)
+/**
+ * 
+*/
+int _shttpd_is_authorized_for_put(struct conn *c)
 {
 	FILE	*fp;
 	int	ret = 0;
@@ -332,9 +346,8 @@ _shttpd_is_authorized_for_put(struct conn *c)
 
 	return (ret);
 }
-
-void
-_shttpd_send_authorization_request(struct conn *c)
+/***/
+void _shttpd_send_authorization_request(struct conn *c)
 {
 	char	buf[512];
 
@@ -349,8 +362,10 @@ _shttpd_send_authorization_request(struct conn *c)
 /*
  * Edit the passwords file.
  */
-int
-_shttpd_edit_passwords(const char *fname, const char *domain,
+/**
+ * 编辑密码
+*/
+int _shttpd_edit_passwords(const char *fname, const char *domain,
 		const char *user, const char *pass)
 {
 	int		ret = EXIT_SUCCESS, found = 0;

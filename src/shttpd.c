@@ -18,7 +18,9 @@
 time_t	_shttpd_current_time;	/* Current UTC time		*/
 int	_shttpd_tz_offset;	/* Time zone offset from UTC	*/
 int	_shttpd_exit_flag;	/* Program exit flag		*/
-
+/**
+ * 支持的方法
+*/
 const struct vec _shttpd_known_http_methods[] = {
 	{"GET",		3},
 	{"POST",	4},
@@ -33,6 +35,9 @@ const struct vec _shttpd_known_http_methods[] = {
  * Used by parse_headers() function.
  */
 #define	OFFSET(x)	offsetof(struct headers, x)
+/**
+ * 支持的请求头
+*/
 static const struct http_header http_headers[] = {
 	{16, HDR_INT,	 OFFSET(cl),		"Content-Length: "	},
 	{14, HDR_STRING, OFFSET(ct),		"Content-Type: "	},
@@ -51,9 +56,8 @@ static const struct http_header http_headers[] = {
 
 struct shttpd_ctx *init_ctx(const char *config_file, int argc, char *argv[]);
 static void process_connection(struct conn *, int, int);
-
-int
-_shttpd_is_true(const char *str)
+/***/
+int _shttpd_is_true(const char *str)
 {
 	static const char	*trues[] = {"1", "yes", "true", "jawohl", NULL};
 	const char		**p;
@@ -64,9 +68,10 @@ _shttpd_is_true(const char *str)
 
 	return (FALSE);
 }
-
-static void
-free_list(struct llhead *head, void (*dtor)(struct llhead *))
+/**
+ * 释放链表
+*/
+static void free_list(struct llhead *head, void (*dtor)(struct llhead *))
 {
 	struct llhead	*lp, *tmp;
 
@@ -75,34 +80,32 @@ free_list(struct llhead *head, void (*dtor)(struct llhead *))
 		dtor(lp);
 	}
 }
-
-static void
-listener_destructor(struct llhead *lp)
+/***/
+static void listener_destructor(struct llhead *lp)
 {
 	struct listener	*listener = LL_ENTRY(lp, struct listener, link);
 
 	(void) closesocket(listener->sock);
 	free(listener);
 }
-
-static void
-registered_uri_destructor(struct llhead *lp)
+/***/
+static void registered_uri_destructor(struct llhead *lp)
 {
 	struct registered_uri *ruri = LL_ENTRY(lp, struct registered_uri, link);
 
 	free((void *) ruri->uri);
 	free(ruri);
 }
-
-static void
-acl_destructor(struct llhead *lp)
+/**访问链表描述符*/
+static void acl_destructor(struct llhead *lp)
 {
 	struct acl	*acl = LL_ENTRY(lp, struct acl, link);
 	free(acl);
 }
-
-int
-_shttpd_url_decode(const char *src, int src_len, char *dst, int dst_len)
+/**
+ * url解码
+*/
+int _shttpd_url_decode(const char *src, int src_len, char *dst, int dst_len)
 {
 	int	i, j, a, b;
 #define	HEXTOI(x)  (isdigit(x) ? x - '0' : x - 'W')
@@ -129,9 +132,8 @@ _shttpd_url_decode(const char *src, int src_len, char *dst, int dst_len)
 
 	return (j);
 }
-
-static const char *
-is_alias(struct shttpd_ctx *ctx, const char *uri,
+/***/
+static const char * is_alias(struct shttpd_ctx *ctx, const char *uri,
 		struct vec *a_uri, struct vec *a_path)
 {
 	const char	*p, *s = ctx->options[OPT_ALIASES];
@@ -155,9 +157,8 @@ is_alias(struct shttpd_ctx *ctx, const char *uri,
 
 	return (NULL);
 }
-
-void
-_shttpd_stop_stream(struct stream *stream)
+/***/
+void _shttpd_stop_stream(struct stream *stream)
 {
 	if (stream->io_class != NULL && stream->io_class->close != NULL)
 		stream->io_class->close(stream);
@@ -175,8 +176,10 @@ _shttpd_stop_stream(struct stream *stream)
 /*
  * Setup listening socket on given port, return socket
  */
-static int
-shttpd_open_listening_port(int port)
+/**
+ * 打开监听端口
+*/
+static int shttpd_open_listening_port(int port)
 {
 	int		sock, on = 1;
 	struct usa	sa;
@@ -217,8 +220,10 @@ fail:
 /*
  * Check whether full request is buffered Return headers length, or 0
  */
-int
-_shttpd_get_headers_len(const char *buf, size_t buflen)
+/**
+ * 获取请求头的长度
+*/
+int _shttpd_get_headers_len(const char *buf, size_t buflen)
 {
 	const char	*s, *e;
 	int		len = 0;
@@ -240,8 +245,10 @@ _shttpd_get_headers_len(const char *buf, size_t buflen)
 /*
  * Send error message back to a client.
  */
-void
-_shttpd_send_server_error(struct conn *c, int status, const char *reason)
+/**
+ * 返回错误信息
+*/
+void _shttpd_send_server_error(struct conn *c, int status, const char *reason)
 {
 	struct llhead		*lp;
 	struct error_handler	*e;
@@ -276,8 +283,10 @@ _shttpd_send_server_error(struct conn *c, int status, const char *reason)
 /*
  * Convert month to the month number. Return -1 on error, or month number
  */
-static int
-montoi(const char *s)
+/**
+ * 月份转换
+*/
+static int montoi(const char *s)
 {
 	static const char *ar[] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -295,8 +304,10 @@ montoi(const char *s)
 /*
  * Parse date-time string, and return the corresponding time_t value
  */
-static time_t
-date_to_epoch(const char *s)
+/**
+ * 日期转换
+*/
+static time_t date_to_epoch(const char *s)
 {
 	struct tm	tm, *tmp;
 	char		mon[32];
@@ -333,9 +344,10 @@ date_to_epoch(const char *s)
 
 	return (mktime(&tm));
 }
-
-static void
-remove_double_dots(char *s)
+/**
+ * 删除..
+*/
+static void remove_double_dots(char *s)
 {
 	char	*p = s;
 
@@ -347,9 +359,10 @@ remove_double_dots(char *s)
 	}
 	*p = '\0';
 }
-
-void
-_shttpd_parse_headers(const char *s, int len, struct headers *parsed)
+/**
+ * 解析请求头
+*/
+void _shttpd_parse_headers(const char *s, int len, struct headers *parsed)
 {
 	const struct http_header	*h;
 	union variant			*v;
@@ -394,7 +407,9 @@ _shttpd_parse_headers(const char *s, int len, struct headers *parsed)
 		s = p + 1;	/* Shift to the next header */
 	}
 }
-
+/**
+ * 支持的MIME类型
+*/
 static const struct {
 	const char	*extension;
 	int		ext_len;
@@ -437,9 +452,10 @@ static const struct {
 	{"bmp",		3,	"image/bmp"			},
 	{NULL,		0,	NULL				}
 };
-
-void
-_shttpd_get_mime_type(struct shttpd_ctx *ctx,
+/**
+ * 获取MIME类型
+*/
+void _shttpd_get_mime_type(struct shttpd_ctx *ctx,
 		const char *uri, int len, struct vec *vec)
 {
 	const char	*eq, *p = ctx->options[OPT_MIME_TYPES];
@@ -479,8 +495,10 @@ _shttpd_get_mime_type(struct shttpd_ctx *ctx,
  * For given directory path, substitute it to valid index file.
  * Return 0 if index file has been found, -1 if not found
  */
-static int
-find_index_file(struct conn *c, char *path, size_t maxpath, struct stat *stp)
+/**
+ * 寻找index文件
+*/
+static int find_index_file(struct conn *c, char *path, size_t maxpath, struct stat *stp)
 {
 	char		buf[FILENAME_MAX];
 	const char	*s = c->ctx->options[OPT_INDEX_FILES];
@@ -504,8 +522,8 @@ find_index_file(struct conn *c, char *path, size_t maxpath, struct stat *stp)
  * If the file is given arguments using PATH_INFO mechanism,
  * initialize pathinfo pointer.
  */
-static int
-get_path_info(struct conn *c, char *path, struct stat *stp)
+/***/
+static int get_path_info(struct conn *c, char *path, struct stat *stp)
 {
 	char	*p, *e;
 
@@ -530,8 +548,7 @@ get_path_info(struct conn *c, char *path, struct stat *stp)
 	return (-1);
 }
 
-static void
-decide_what_to_do(struct conn *c)
+static void decide_what_to_do(struct conn *c)
 {
 	char		path[URI_MAX], buf[1024], *root;
 	struct vec	alias_uri, alias_path;
@@ -656,9 +673,10 @@ decide_what_to_do(struct conn *c)
 		_shttpd_send_server_error(c, 500, "Internal Error");
 	}
 }
-
-static int
-set_request_method(struct conn *c)
+/**
+ * 设置请求方式
+*/
+static int set_request_method(struct conn *c)
 {
 	const struct vec	*v;
 
@@ -671,9 +689,10 @@ set_request_method(struct conn *c)
 
 	return (v->ptr == NULL);
 }
-
-static void
-parse_http_request(struct conn *c)
+/**
+ * 解析HTTP请求
+*/
+static void parse_http_request(struct conn *c)
 {
 	char	*s, *e, *p, *start;
 	int	uri_len, req_len, n;
@@ -753,9 +772,10 @@ parse_http_request(struct conn *c)
 		decide_what_to_do(c);
 	}
 }
-
-static void
-add_socket(struct worker *worker, int sock, int is_ssl)
+/**
+ * 添加socket
+*/
+static void add_socket(struct worker *worker, int sock, int is_ssl)
 {
 	struct shttpd_ctx	*ctx = worker->ctx;
 	struct conn		*c;
@@ -828,15 +848,15 @@ add_socket(struct worker *worker, int sock, int is_ssl)
 		    ntohs(sa.u.sin.sin_port), sock));
 	}
 }
-
-static struct worker *
-first_worker(struct shttpd_ctx *ctx)
+/**
+ * 
+*/
+static struct worker * first_worker(struct shttpd_ctx *ctx)
 {
 	return (LL_ENTRY(ctx->workers.next, struct worker, link));
 }
-
-static void
-pass_socket(struct shttpd_ctx *ctx, int sock, int is_ssl)
+/***/
+static void pass_socket(struct shttpd_ctx *ctx, int sock, int is_ssl)
 {
 	struct llhead	*lp;
 	struct worker	*worker, *lazy;
@@ -857,9 +877,10 @@ pass_socket(struct shttpd_ctx *ctx, int sock, int is_ssl)
 
 	(void) send(lazy->ctl[1], (void *) buf, sizeof(buf), 0);
 }
-
-static int
-set_ports(struct shttpd_ctx *ctx, const char *p)
+/**
+ * 设置端口
+*/
+static int set_ports(struct shttpd_ctx *ctx, const char *p)
 {
 	int		sock, len, is_ssl, port;
 	struct listener	*l;
@@ -898,9 +919,10 @@ fail:
 	free_list(&ctx->listeners, &listener_destructor);
 	return (FALSE);
 }
-
-static void
-read_stream(struct stream *stream)
+/**
+ * 读流
+*/
+static void read_stream(struct stream *stream)
 {
 	int	n, len;
 
@@ -942,9 +964,10 @@ read_stream(struct stream *stream)
 
 	stream->conn->expire_time = _shttpd_current_time + EXPIRE_TIME;
 }
-
-static void
-write_stream(struct stream *from, struct stream *to)
+/**
+ * 写流
+*/
+static void write_stream(struct stream *from, struct stream *to)
 {
 	int	n, len;
 
@@ -966,9 +989,10 @@ write_stream(struct stream *from, struct stream *to)
 		_shttpd_stop_stream(to);
 }
 
-
-static void
-connection_desctructor(struct llhead *lp)
+/**
+ * 连接描述符
+*/
+static void connection_desctructor(struct llhead *lp)
 {
 	struct conn		*c = LL_ENTRY(lp, struct conn, link);
 	static const struct vec	vec = {"close", 5};
@@ -1025,18 +1049,18 @@ connection_desctructor(struct llhead *lp)
 		free(c);
 	}
 }
-
-static void
-worker_destructor(struct llhead *lp)
+/**
+ * 工作描述符
+*/
+static void worker_destructor(struct llhead *lp)
 {
 	struct worker	*worker = LL_ENTRY(lp, struct worker, link);
 
 	free_list(&worker->connections, connection_desctructor);
 	free(worker);
 }
-
-static int
-is_allowed(const struct shttpd_ctx *ctx, const struct usa *usa)
+/***/
+static int is_allowed(const struct shttpd_ctx *ctx, const struct usa *usa)
 {
 	const struct acl	*acl;
 	const struct llhead	*lp;
@@ -1052,17 +1076,21 @@ is_allowed(const struct shttpd_ctx *ctx, const struct usa *usa)
 
 	return (allowed == '+');
 }
-
-static void
-add_to_set(int fd, fd_set *set, int *max_fd)
+/**
+ * 将文件描述符添加到集合并更新最大的文件描述符的值
+*/
+static void add_to_set(int fd, fd_set *set, int *max_fd)
 {
 	FD_SET(fd, set);
 	if (fd > *max_fd)
+	{
 		*max_fd = fd;
+	}
 }
-
-static void
-process_connection(struct conn *c, int remote_ready, int local_ready)
+/**
+ * 处理连接
+*/
+static void process_connection(struct conn *c, int remote_ready, int local_ready)
 {
 	/* Read from remote end if it is ready */
 	if (remote_ready && io_space_len(&c->rem.io))
@@ -1094,16 +1122,18 @@ process_connection(struct conn *c, int remote_ready, int local_ready)
 	    ((c->loc.flags & FLAG_CLOSED) && !io_data_len(&c->loc.io)))
 		connection_desctructor(&c->link);
 }
-
-static int
-num_workers(const struct shttpd_ctx *ctx)
+/**
+ * 工作者数量
+*/
+static int num_workers(const struct shttpd_ctx *ctx)
 {
 	char	*p = ctx->options[OPT_THREADS];
 	return (p ? atoi(p) : 1);
 }
-
-static void
-handle_connected_socket(struct shttpd_ctx *ctx,
+/**
+ * 处理连接的socket
+*/
+static void handle_connected_socket(struct shttpd_ctx *ctx,
 		struct usa *sap, int sock, int is_ssl)
 {
 #if !defined(_WIN32)
@@ -1123,9 +1153,8 @@ handle_connected_socket(struct shttpd_ctx *ctx,
 		add_socket(first_worker(ctx), sock, is_ssl);
 	}
 }
-
-static int
-do_select(int max_fd, fd_set *read_set, fd_set *write_set, int milliseconds)
+/***/
+static int do_select(int max_fd, fd_set *read_set, fd_set *write_set, int milliseconds)
 {
 	struct timeval	tv;
 	int		n;
@@ -1134,6 +1163,7 @@ do_select(int max_fd, fd_set *read_set, fd_set *write_set, int milliseconds)
 	tv.tv_usec = (milliseconds % 1000) * 1000;
 
 	/* Check IO readiness */
+	//设置处理的超时函数
 	if ((n = select(max_fd + 1, read_set, write_set, NULL, &tv)) < 0) {
 #ifdef _WIN32
 		/*
@@ -1149,9 +1179,8 @@ do_select(int max_fd, fd_set *read_set, fd_set *write_set, int milliseconds)
 
 	return (n);
 }
-
-static int
-multiplex_worker_sockets(const struct worker *worker, int *max_fd,
+/***/
+static int multiplex_worker_sockets(const struct worker *worker, int *max_fd,
 		fd_set *read_set, fd_set *write_set)
 {
 	struct llhead	*lp;
@@ -1208,32 +1237,37 @@ multiplex_worker_sockets(const struct worker *worker, int *max_fd,
 
 	return (nowait);
 }
-
-int
-shttpd_join(struct shttpd_ctx *ctx,
-		fd_set *read_set, fd_set *write_set, int *max_fd)
+/**
+ * 
+*/
+int shttpd_join(struct shttpd_ctx *ctx,fd_set *read_set, fd_set *write_set, int *max_fd)
 {
 	struct llhead	*lp;
 	struct listener	*l;
 	int		nowait = FALSE;
-
+	int works;
 	/* Add listening sockets to the read set */
 	LL_FOREACH(&ctx->listeners, lp) {
 		l = LL_ENTRY(lp, struct listener, link);
+		//将此文件描述否添加到读集合
 		add_to_set(l->sock, read_set, max_fd);
 		DBG(("FD_SET(%d) (listening)", l->sock));
 	}
-
-	if (num_workers(ctx) == 1)
-		nowait = multiplex_worker_sockets(first_worker(ctx), max_fd,
-		    read_set, write_set);
-
+	/**
+	 * 如果当前的工作个数为1
+	*/
+	works = num_workers(ctx);
+	DBG(("the works is %d\r\n", works));
+	if (works == 1)
+	{
+		nowait = multiplex_worker_sockets(first_worker(ctx), max_fd,read_set, write_set);
+	}
+	DBG(("the nowait is %d\r\n", nowait));
 	return (nowait);
 }
 
-
-static void
-process_worker_sockets(struct worker *worker, fd_set *read_set)
+/***/
+static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 {
 	struct llhead	*lp, *tmp;
 	int		cmd, skt[2], sock = worker->ctl[0];
@@ -1274,8 +1308,8 @@ process_worker_sockets(struct worker *worker, fd_set *read_set)
 /*
  * One iteration of server loop. This is the core of the data exchange.
  */
-void
-shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
+/***/
+void shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 {
 	struct llhead	*lp;
 	struct listener	*l;
@@ -1284,36 +1318,47 @@ shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 	struct usa	sa;
 
 	_shttpd_current_time = time(0);
+	//清空读写集合
 	FD_ZERO(&read_set);
 	FD_ZERO(&write_set);
-
+	//
 	if (shttpd_join(ctx, &read_set, &write_set, &max_fd))
+	{
 		milliseconds = 0;
+	}
 
 	if (do_select(max_fd, &read_set, &write_set, milliseconds) < 0)
+	{
 		return;;
+	}
 
 	/* Check for incoming connections on listener sockets */
 	LL_FOREACH(&ctx->listeners, lp) {
 		l = LL_ENTRY(lp, struct listener, link);
 		if (!FD_ISSET(l->sock, &read_set))
+		{
 			continue;
+		}
 		do {
 			sa.len = sizeof(sa.u.sin);
 			if ((sock = accept(l->sock, &sa.u.sa, &sa.len)) != -1)
+			{
 				handle_connected_socket(ctx,&sa,sock,l->is_ssl);
+			}
 		} while (sock != -1);
 	}
 
 	if (num_workers(ctx) == 1)
+	{
 		process_worker_sockets(first_worker(ctx), &read_set);
+	}
 }
 
 /*
  * Deallocate shttpd object, free up the resources
  */
-void
-shttpd_fini(struct shttpd_ctx *ctx)
+/***/
+void shttpd_fini(struct shttpd_ctx *ctx)
 {
 	size_t	i;
 
@@ -1341,8 +1386,8 @@ shttpd_fini(struct shttpd_ctx *ctx)
  * UNIX socketpair() implementation. Why? Because Windows does not have it.
  * Return 0 on success, -1 on error.
  */
-int
-shttpd_socketpair(int sp[2])
+/***/
+int shttpd_socketpair(int sp[2])
 {
 	struct sockaddr_in	sa;
 	int			sock, ret = -1;
@@ -1385,11 +1430,10 @@ shttpd_socketpair(int sp[2])
 
 	return (ret);
 }
-
+/***/
 static int isbyte(int n) { return (n >= 0 && n <= 255); }
-
-static int
-set_inetd(struct shttpd_ctx *ctx, const char *flag)
+/***/
+static int set_inetd(struct shttpd_ctx *ctx, const char *flag)
 {
 	ctx = NULL; /* Unused */
 
@@ -1401,9 +1445,10 @@ set_inetd(struct shttpd_ctx *ctx, const char *flag)
 
 	return (TRUE);
 }
-
-static int
-set_uid(struct shttpd_ctx *ctx, const char *uid)
+/**
+ * 设置用户id
+*/
+static int set_uid(struct shttpd_ctx *ctx, const char *uid)
 {
 	struct passwd	*pw;
 
@@ -1421,7 +1466,9 @@ set_uid(struct shttpd_ctx *ctx, const char *uid)
 #endif /* !_WIN32 */
 	return (TRUE);
 }
-/***/
+/**
+ * 设置访问列表
+*/
 static int set_acl(struct shttpd_ctx *ctx, const char *s)
 {
 	struct acl	*acl = NULL;
@@ -1501,9 +1548,10 @@ static int set_ssl(struct shttpd_ctx *ctx, const char *pem)
 	return (retval);
 }
 #endif /* NO_SSL */
-
-static int
-open_log_file(FILE **fpp, const char *path)
+/**
+ * 打开日志文件
+*/
+static int open_log_file(FILE **fpp, const char *path)
 {
 	int	retval = TRUE;
 
@@ -1520,15 +1568,19 @@ open_log_file(FILE **fpp, const char *path)
 
 	return (retval);
 }
-
+/**
+ * 设置
+*/
 static int set_alog(struct shttpd_ctx *ctx, const char *path) {
 	return (open_log_file(&ctx->access_log, path));
 }
-
+/**
+ * 
+*/
 static int set_elog(struct shttpd_ctx *ctx, const char *path) {
 	return (open_log_file(&ctx->error_log, path));
 }
-
+/***/
 static void show_cfg_page(struct shttpd_arg *arg);
 
 static int
@@ -1542,8 +1594,7 @@ set_cfg_uri(struct shttpd_ctx *ctx, const char *uri)
 	return (TRUE);
 }
 
-static struct worker *
-add_worker(struct shttpd_ctx *ctx)
+static struct worker * add_worker(struct shttpd_ctx *ctx)
 {
 	struct worker	*worker;
 
@@ -1558,8 +1609,8 @@ add_worker(struct shttpd_ctx *ctx)
 }
 
 #if !defined(NO_THREADS)
-static void
-poll_worker(struct worker *worker, int milliseconds)
+/***/
+static void poll_worker(struct worker *worker, int milliseconds)
 {
 	fd_set		read_set, write_set;
 	int		max_fd = -1;
@@ -1575,9 +1626,8 @@ poll_worker(struct worker *worker, int milliseconds)
 
 	process_worker_sockets(worker, &read_set);
 }
-
-static void
-worker_function(void *param)
+/***/
+static void worker_function(void *param)
 {
 	struct worker *worker = param;
 
@@ -1587,9 +1637,8 @@ worker_function(void *param)
 	free_list(&worker->connections, connection_desctructor);
 	free(worker);
 }
-
-static int
-set_workers(struct shttpd_ctx *ctx, const char *value)
+/***/
+static int set_workers(struct shttpd_ctx *ctx, const char *value)
 {
 	int		new_num, old_num;
 	struct llhead	*lp, *tmp;
@@ -1622,7 +1671,7 @@ set_workers(struct shttpd_ctx *ctx, const char *value)
 	return (TRUE);
 }
 #endif /* NO_THREADS */
-
+/***/
 static const struct opt {
 	int		index;		/* Index in shttpd_ctx		*/
 	const char	*name;		/* Option name in config file	*/
@@ -1710,9 +1759,8 @@ int shttpd_set_option(struct shttpd_ctx *ctx, const char *opt, const char *val)
 
 	return (retval);
 }
-
-static void
-show_cfg_page(struct shttpd_arg *arg)
+/***/
+static void show_cfg_page(struct shttpd_arg *arg)
 {
 	struct shttpd_ctx	*ctx = arg->user_data;
 	char			opt_name[20], value[BUFSIZ];
@@ -1759,8 +1807,8 @@ show_cfg_page(struct shttpd_arg *arg)
 /*
  * Show usage string and exit.
  */
-void
-_shttpd_usage(const char *prog)
+/***/
+void _shttpd_usage(const char *prog)
 {
 	const struct opt	*o;
 
@@ -1781,9 +1829,8 @@ _shttpd_usage(const char *prog)
 
 	exit(EXIT_FAILURE);
 }
-
-static void
-set_opt(struct shttpd_ctx *ctx, const char *opt, const char *value)
+/***/
+static void set_opt(struct shttpd_ctx *ctx, const char *opt, const char *value)
 {
 	const struct opt	*o;
 
@@ -1792,9 +1839,10 @@ set_opt(struct shttpd_ctx *ctx, const char *opt, const char *value)
 		free(ctx->options[o->index]);
 	ctx->options[o->index] = _shttpd_strdup(value);
 }
-
-static void
-process_command_line_arguments(struct shttpd_ctx *ctx, char *argv[])
+/**
+ * 处理命令行参数
+*/
+static void process_command_line_arguments(struct shttpd_ctx *ctx, char *argv[])
 {
 	const char		*config_file = CONFIG_FILE;
 	char			line[BUFSIZ], opt[BUFSIZ],
@@ -1856,16 +1904,19 @@ process_command_line_arguments(struct shttpd_ctx *ctx, char *argv[])
 	for (i = 1; argv[i] != NULL && argv[i][0] == '-'; i += 2)
 		set_opt(ctx, &argv[i][1], argv[i + 1]);
 }
-
-struct shttpd_ctx *
-shttpd_init(int argc, char *argv[])
+/**
+ * http服务器的初始化
+*/
+struct shttpd_ctx * shttpd_init(int argc, char *argv[])
 {
 	struct shttpd_ctx	*ctx;
 	struct tm		*tm;
 	const struct opt	*o;
-
+	//为shttpd_ctx对象分配空间
 	if ((ctx = calloc(1, sizeof(*ctx))) == NULL)
+	{
 		_shttpd_elog(E_FATAL, NULL, "cannot allocate shttpd context");
+	}
 
 	LL_INIT(&ctx->registered_uris);
 	LL_INIT(&ctx->error_handlers);
@@ -1881,22 +1932,30 @@ shttpd_init(int argc, char *argv[])
 
 	/* Second and third passes: config file and argv */
 	if (argc > 0 && argv != NULL)
+	{
 		process_command_line_arguments(ctx, argv);
+	}
 
 	/* Call setter functions */
 	for (o = known_options; o->name != NULL; o++)
+	{
 		if (o->setter && ctx->options[o->index] != NULL)
+		{
 			if (o->setter(ctx, ctx->options[o->index]) == FALSE) {
 				shttpd_fini(ctx);
 				return (NULL);
 			}
+		}
+	}
 
 	_shttpd_current_time = time(NULL);
 	tm = localtime(&_shttpd_current_time);
 	_shttpd_tz_offset = 0;
 
 	if (num_workers(ctx) == 1)
+	{
 		(void) add_worker(ctx);
+	}
 #if 0
 	tm->tm_gmtoff - 3600 * (tm->tm_isdst > 0 ? 1 : 0);
 #endif

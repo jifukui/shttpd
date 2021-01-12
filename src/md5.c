@@ -24,6 +24,7 @@
 /*
  * Note: this code is harmless on little-endian machines.
  */
+/***/
 static void byteReverse(unsigned char *buf, unsigned longs)
 {
 	uint32_t t;
@@ -52,6 +53,7 @@ static void byteReverse(unsigned char *buf, unsigned longs)
  * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
  */
+/***/
 void MD5Init(MD5_CTX *ctx)
 {
 	ctx->buf[0] = 0x67452301;
@@ -68,6 +70,7 @@ void MD5Init(MD5_CTX *ctx)
  * reflect the addition of 16 longwords of new data.  MD5Update blocks
  * the data and converts bytes into longwords for this routine.
  */
+/***/
 static void MD5Transform(uint32_t buf[4], uint32_t const in[16])
 {
 	register uint32_t a, b, c, d;
@@ -155,8 +158,8 @@ static void MD5Transform(uint32_t buf[4], uint32_t const in[16])
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void
-MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
+/***/
+void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
 {
 	uint32_t t;
 
@@ -204,8 +207,7 @@ MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
  * Final wrapup - pad to 64-byte boundary with the bit pattern 
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-void
-MD5Final(unsigned char digest[16], MD5_CTX *ctx)
+void MD5Final(unsigned char digest[16], MD5_CTX *ctx)
 {
 	unsigned count;
 	unsigned char *p;

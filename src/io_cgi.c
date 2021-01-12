@@ -9,18 +9,20 @@
  */
 
 #include "defs.h"
-
-static int
-write_cgi(struct stream *stream, const void *buf, size_t len)
+/**
+ * 写CGI
+*/
+static int write_cgi(struct stream *stream, const void *buf, size_t len)
 {
 	assert(stream->chan.sock != -1);
 	assert(stream->flags & FLAG_W);
 
 	return (send(stream->chan.sock, buf, len, 0));
 }
-
-static int
-read_cgi(struct stream *stream, void *buf, size_t len)
+/**
+ * 读CGI
+*/
+static int read_cgi(struct stream *stream, void *buf, size_t len)
 {
 	struct headers	parsed;
 	char		status[4];
@@ -111,9 +113,10 @@ read_cgi(struct stream *stream, void *buf, size_t len)
 	/* Return 0 because we've already shifted the head */
 	return (0);
 }
-
-static void
-close_cgi(struct stream *stream)
+/**
+ * 关闭CGI
+*/
+static void close_cgi(struct stream *stream)
 {
 	assert(stream->chan.sock != -1);
 	(void) closesocket(stream->chan.sock);

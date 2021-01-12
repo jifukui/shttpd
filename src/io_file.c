@@ -9,9 +9,10 @@
  */
 
 #include "defs.h"
-
-static int
-write_file(struct stream *stream, const void *buf, size_t len)
+/**
+ * 写文件
+*/
+static int write_file(struct stream *stream, const void *buf, size_t len)
 {
 	struct stat	st;
 	struct stream	*rem = &stream->conn->rem;
@@ -34,9 +35,10 @@ write_file(struct stream *stream, const void *buf, size_t len)
 
 	return (n);
 }
-
-static int
-read_file(struct stream *stream, void *buf, size_t len)
+/**
+ * 读文件
+*/
+static int read_file(struct stream *stream, void *buf, size_t len)
 {
 #ifdef USE_SENDFILE
 	struct	iovec	vec;
@@ -81,16 +83,18 @@ read_file(struct stream *stream, void *buf, size_t len)
 	assert(stream->chan.fd != -1);
 	return (read(stream->chan.fd, buf, len));
 }
-
-static void
-close_file(struct stream *stream)
+/**
+ * 关闭文件
+*/
+static void close_file(struct stream *stream)
 {
 	assert(stream->chan.fd != -1);
 	(void) close(stream->chan.fd);
 }
-
-void
-_shttpd_get_file(struct conn *c, struct stat *stp)
+/**
+ * http获取文件
+*/
+void _shttpd_get_file(struct conn *c, struct stat *stp)
 {
 	char		date[64], lm[64], etag[64], range[64] = "";
 	size_t		n, status = 200;

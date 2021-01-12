@@ -2,3 +2,6 @@ Linux的编译
 LIBS="-lpthread -ldl " make unix
 样例程序的编译
 gcc example.c -I ../src  ../src/libshttpd.a -ldl -lpthread
+生成证书
+openssl req -new -x509 -key rsa_aes_private.pem -out ji.pem -days 3650
+这里需要的证书是需要有证书和私钥的文件

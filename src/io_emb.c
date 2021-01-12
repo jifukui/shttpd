@@ -9,15 +9,13 @@
  */
 
 #include "defs.h"
-
-const char *
-shttpd_version(void)
+/**返回服务器的版本*/
+const char * shttpd_version(void)
 {
 	return (VERSION);
 }
-
-static void
-call_user(struct conn *c, struct shttpd_arg *arg, shttpd_callback_t func)
+/***/
+static void call_user(struct conn *c, struct shttpd_arg *arg, shttpd_callback_t func)
 {
 	arg->priv		= c;
 	arg->state		= c->loc.chan.emb.state;
@@ -56,9 +54,10 @@ call_user(struct conn *c, struct shttpd_arg *arg, shttpd_callback_t func)
 	if (arg->flags & SHTTPD_SUSPEND)
 		c->loc.flags |= FLAG_SUSPEND;
 }
-
-static int
-do_embedded(struct stream *stream, void *buf, size_t len)
+/**
+ * 进行嵌入
+*/
+static int do_embedded(struct stream *stream, void *buf, size_t len)
 {
 	struct shttpd_arg	arg;
 	buf = NULL; len = 0;		/* Squash warnings */
@@ -71,9 +70,10 @@ do_embedded(struct stream *stream, void *buf, size_t len)
 
 	return (0);
 }
-
-static void
-close_embedded(struct stream *stream)
+/**
+ * 关闭嵌入
+*/
+static void close_embedded(struct stream *stream)
 {
 	struct shttpd_arg	arg;
 	struct conn		*c = stream->conn;
@@ -89,9 +89,10 @@ close_embedded(struct stream *stream)
 		call_user(stream->conn, &arg, (shttpd_callback_t)
 		    c->loc.chan.emb.func.v_func);
 }
-
-size_t
-shttpd_printf(struct shttpd_arg *arg, const char *fmt, ...)
+/**
+ * http的输出
+*/
+size_t shttpd_printf(struct shttpd_arg *arg, const char *fmt, ...)
 {
 	char		*buf = arg->out.buf + arg->out.num_bytes;
 	int		buflen = arg->out.len - arg->out.num_bytes, len = 0;
@@ -109,9 +110,10 @@ shttpd_printf(struct shttpd_arg *arg, const char *fmt, ...)
 
 	return (len);
 }
-
-const char *
-shttpd_get_header(struct shttpd_arg *arg, const char *header_name)
+/**
+ * 获取请求头
+*/
+const char * shttpd_get_header(struct shttpd_arg *arg, const char *header_name)
 {
 	struct conn	*c = arg->priv;
 	char		*p, *s, *e;
@@ -132,9 +134,10 @@ shttpd_get_header(struct shttpd_arg *arg, const char *header_name)
 
 	return (NULL);
 }
-
-const char *
-shttpd_get_env(struct shttpd_arg *arg, const char *env_name)
+/**
+ * 获取环境变量
+*/
+const char * shttpd_get_env(struct shttpd_arg *arg, const char *env_name)
 {
 	struct conn	*c = arg->priv;
 	struct vec	*vec;
@@ -157,9 +160,10 @@ shttpd_get_env(struct shttpd_arg *arg, const char *env_name)
 
 	return (NULL);
 }
-
-void
-shttpd_get_http_version(struct shttpd_arg *arg,
+/**
+ * 获取HTTP的版本
+*/
+void shttpd_get_http_version(struct shttpd_arg *arg,
 		unsigned long *major, unsigned long *minor)
 {
 	struct conn *c = arg->priv;
@@ -167,9 +171,8 @@ shttpd_get_http_version(struct shttpd_arg *arg,
 	*major = c->major_version;
 	*minor = c->minor_version;
 }
-
-void
-shttpd_register_uri(struct shttpd_ctx *ctx,
+/***/
+void shttpd_register_uri(struct shttpd_ctx *ctx,
 		const char *uri, shttpd_callback_t callback, void *data)
 {
 	struct registered_uri	*e;
@@ -181,9 +184,10 @@ shttpd_register_uri(struct shttpd_ctx *ctx,
 		LL_TAIL(&ctx->registered_uris, &e->link);
 	}
 }
-
-int
-shttpd_get_var(const char *var, const char *buf, int buf_len,
+/**
+ * 
+*/
+int shttpd_get_var(const char *var, const char *buf, int buf_len,
 		char *value, int value_len)
 {
 	const char	*p, *e, *s;
@@ -209,9 +213,10 @@ shttpd_get_var(const char *var, const char *buf, int buf_len,
 
 	return (-1);
 }
-
-static int
-match_regexp(const char *regexp, const char *text)
+/**
+ * 匹配正则表达式
+*/
+static int match_regexp(const char *regexp, const char *text)
 {
 	if (*regexp == '\0')
 		return (*text == '\0');
@@ -227,9 +232,8 @@ match_regexp(const char *regexp, const char *text)
 
 	return (0);
 }
-
-struct registered_uri *
-_shttpd_is_registered_uri(struct shttpd_ctx *ctx, const char *uri)
+/***/
+struct registered_uri * _shttpd_is_registered_uri(struct shttpd_ctx *ctx, const char *uri)
 {
 	struct llhead		*lp;
 	struct registered_uri	*reg_uri;
@@ -242,9 +246,10 @@ _shttpd_is_registered_uri(struct shttpd_ctx *ctx, const char *uri)
 
 	return (NULL);
 }
-
-void
-_shttpd_setup_embedded_stream(struct conn *c, union variant func, void *data)
+/**
+ * 创建嵌入流
+*/
+void _shttpd_setup_embedded_stream(struct conn *c, union variant func, void *data)
 {
 	c->loc.chan.emb.state = NULL;
 	c->loc.chan.emb.func = func;
@@ -252,9 +257,10 @@ _shttpd_setup_embedded_stream(struct conn *c, union variant func, void *data)
 	c->loc.io_class = &_shttpd_io_embedded;
 	c->loc.flags |= FLAG_R | FLAG_W |FLAG_ALWAYS_READY;
 }
-
-void
-shttpd_handle_error(struct shttpd_ctx *ctx, int code,
+/**
+ * 错误处理
+*/
+void shttpd_handle_error(struct shttpd_ctx *ctx, int code,
 		shttpd_callback_t func, void *data)
 {
 	struct error_handler	*e;
@@ -266,9 +272,10 @@ shttpd_handle_error(struct shttpd_ctx *ctx, int code,
 		LL_TAIL(&ctx->error_handlers, &e->link);
 	}
 }
-
-void
-shttpd_wakeup(const void *priv)
+/**
+ * 唤醒
+*/
+void shttpd_wakeup(const void *priv)
 {
 	const struct conn	*conn = priv;
 	char			buf[sizeof(int) + sizeof(void *)];

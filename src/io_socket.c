@@ -9,23 +9,26 @@
  */
 
 #include "defs.h"
-
-static int
-read_socket(struct stream *stream, void *buf, size_t len)
+/**
+ * 读取socket
+*/
+static int read_socket(struct stream *stream, void *buf, size_t len)
 {
 	assert(stream->chan.sock != -1);
 	return (recv(stream->chan.sock, buf, len, 0));
 }
-
-static int
-write_socket(struct stream *stream, const void *buf, size_t len)
+/**
+ * 写socket
+*/
+static int write_socket(struct stream *stream, const void *buf, size_t len)
 {
 	assert(stream->chan.sock != -1);
 	return (send(stream->chan.sock, buf, len, 0));
 }
-
-static void
-close_socket(struct stream *stream)
+/**
+ * 关闭socket
+*/
+static void close_socket(struct stream *stream)
 {
 	assert(stream->chan.sock != -1);
 	(void) closesocket(stream->chan.sock);

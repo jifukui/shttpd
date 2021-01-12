@@ -11,15 +11,19 @@
 #include "defs.h"
 
 #if !defined(NO_CGI)
+/**
+ * 环境变量结构
+*/
 struct env_block {
 	char	buf[ENV_MAX];		/* Environment buffer		*/
 	int	len;			/* Space taken			*/
 	char	*vars[CGI_ENV_VARS];	/* Point into the buffer	*/
 	int	nvars;			/* Number of variables		*/
 };
-
-static void
-addenv(struct env_block *block, const char *fmt, ...)
+/**
+ * 添加环境变量
+*/
+static void addenv(struct env_block *block, const char *fmt, ...)
 {
 	int	n, space;
 	va_list	ap;
@@ -36,9 +40,10 @@ addenv(struct env_block *block, const char *fmt, ...)
 		block->len += n + 1;	/* Include \0 terminator */
 	}
 }
-
-static void
-add_http_headers_to_env(struct env_block *b, const char *s, int len)
+/**
+ * 将HTTP请求头添加到环境变量
+*/
+static void add_http_headers_to_env(struct env_block *b, const char *s, int len)
 {
 	const char	*p, *v, *e = s + len;
 	int		space, n, i, ch;
@@ -87,9 +92,10 @@ add_http_headers_to_env(struct env_block *b, const char *s, int len)
 		s = p + 1;	/* Shift to the next header */
 	}
 }
-
-static void
-prepare_environment(const struct conn *c, const char *prog,
+/**
+ * 准备环境变量
+*/
+static void prepare_environment(const struct conn *c, const char *prog,
 		struct env_block *blk)
 {
 	const struct headers	*h = &c->ch;
@@ -179,9 +185,10 @@ prepare_environment(const struct conn *c, const char *prog,
 			DBG(("[%s]", blk->vars[i] ? blk->vars[i] : "null"));
 	}
 }
-
-int
-_shttpd_run_cgi(struct conn *c, const char *prog)
+/**
+ * 运行CGI
+*/
+int _shttpd_run_cgi(struct conn *c, const char *prog)
 {
 	struct env_block	blk;
 	char			dir[FILENAME_MAX], *p;
@@ -212,9 +219,10 @@ _shttpd_run_cgi(struct conn *c, const char *prog)
 
 	return (ret);
 }
-
-void
-_shttpd_do_cgi(struct conn *c)
+/**
+ * 运行CGI
+*/
+void _shttpd_do_cgi(struct conn *c)
 {
 	DBG(("running CGI: [%s]", c->uri));
 	assert(c->loc.io.size > CGI_REPLY_LEN);

@@ -15,45 +15,40 @@ _shttpd_set_close_on_exec(int fd)
 {
 	(void) fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
-
-int
-_shttpd_stat(const char *path, struct stat *stp)
+/**
+ * 获取文件的状态
+*/
+int _shttpd_stat(const char *path, struct stat *stp)
 {
 	return (stat(path, stp));
 }
 
-int
-_shttpd_open(const char *path, int flags, int mode)
+int _shttpd_open(const char *path, int flags, int mode)
 {
 	return (open(path, flags, mode));
 }
 
-int
-_shttpd_remove(const char *path)
+int _shttpd_remove(const char *path)
 {
 	return (remove(path));
 }
 
-int
-_shttpd_rename(const char *path1, const char *path2)
+int _shttpd_rename(const char *path1, const char *path2)
 {
 	return (rename(path1, path2));
 }
 
-int
-_shttpd_mkdir(const char *path, int mode)
+int _shttpd_mkdir(const char *path, int mode)
 {
 	return (mkdir(path, mode));
 }
 
-char *
-_shttpd_getcwd(char *buffer, int maxlen)
+char * _shttpd_getcwd(char *buffer, int maxlen)
 {
 	return (getcwd(buffer, maxlen));
 }
 
-int
-_shttpd_set_non_blocking_mode(int fd)
+int _shttpd_set_non_blocking_mode(int fd)
 {
 	int	ret = -1;
 	int	flags;
@@ -70,8 +65,7 @@ _shttpd_set_non_blocking_mode(int fd)
 }
 
 #ifndef NO_CGI
-int
-_shttpd_spawn_process(struct conn *c, const char *prog, char *envblk,
+int _shttpd_spawn_process(struct conn *c, const char *prog, char *envblk,
 		char *envp[], int sock, const char *dir)
 {
 	int		ret;

@@ -1,0 +1,24 @@
+string.c shttpd.c log.c auth.c md5.c cgi.c io_ssi.c io_file.c io_socket.c io_ssl.c io_emb.c io_dir.c io_cgi.c
+1.string.c
+字符串的相关处理函数
+2.log.c
+日志输出相关函数
+3.auth.c
+认证相关函数
+4.md5.c
+5.cgi.c
+CGI相关的处理函数
+6.io_ssi.c
+服务器端包含相关函数
+7.io_file.c
+8.io_socket.c
+9.io_ssl.c
+10.io_emb.c
+11.io_dir.c
+12.io_cgi.c
+CGI的相关操作
+13.shttpd.c
+14.standalone.c
+示例程序的主程序
+15.compat_unix.c
+unix平台的文件处理函数和进程调用函数

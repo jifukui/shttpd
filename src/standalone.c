@@ -11,9 +11,10 @@
 #include "defs.h"
 
 static int	exit_flag;	/* Program termination flag	*/
-
-static void
-signal_handler(int sig_num)
+/**
+ * 信号量处理函数
+*/
+static void signal_handler(int sig_num)
 {
 	switch (sig_num) {
 #ifndef _WIN32
@@ -26,9 +27,10 @@ signal_handler(int sig_num)
 		break;
 	}
 }
-
-int
-main(int argc, char *argv[])
+/**
+ * 主程序
+*/
+int main(int argc, char *argv[])
 {
 	struct shttpd_ctx	*ctx;
 
@@ -51,14 +53,14 @@ main(int argc, char *argv[])
 	(void) signal(SIGCHLD, signal_handler);
 	(void) signal(SIGPIPE, SIG_IGN);
 #endif /* _WIN32 */
-
+	//信号的处理
 	(void) signal(SIGTERM, signal_handler);
 	(void) signal(SIGINT, signal_handler);
-
+	//http的初始化
 	if ((ctx = shttpd_init(argc, argv)) == NULL)
 		_shttpd_elog(E_FATAL, NULL, "%s",
 		    "Cannot initialize SHTTPD context");
-
+	//输出监听端口
 	_shttpd_elog(E_LOG, NULL, "shttpd %s started on port(s) %s, serving %s",
 	    VERSION, ctx->options[OPT_PORTS], ctx->options[OPT_ROOT]);
 

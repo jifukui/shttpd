@@ -13,8 +13,8 @@
 /*
  * Log function
  */
-void
-_shttpd_elog(int flags, struct conn *c, const char *fmt, ...)
+/***/
+void _shttpd_elog(int flags, struct conn *c, const char *fmt, ...)
 {
 	char	date[64], buf[URI_MAX];
 	int	len;
@@ -51,9 +51,8 @@ _shttpd_elog(int flags, struct conn *c, const char *fmt, ...)
 	if (flags & E_FATAL)
 		exit(EXIT_FAILURE);
 }
-
-void
-_shttpd_log_access(FILE *fp, const struct conn *c)
+/***/
+void _shttpd_log_access(FILE *fp, const struct conn *c)
 {
 	static const struct vec	dash = {"-", 1};
 

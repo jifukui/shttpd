@@ -43,9 +43,10 @@ enum { SSI_PASS, SSI_BUF, SSI_EXEC, SSI_CALL };
 enum { SSI_GO, SSI_STOP };		/* Conditional states		*/
 
 static const struct vec	st = {"<!--#", 5};
-
-void
-shttpd_register_ssi_func(struct shttpd_ctx *ctx, const char *name,
+/**
+ * 
+*/
+void shttpd_register_ssi_func(struct shttpd_ctx *ctx, const char *name,
 		shttpd_callback_t func, void *user_data)
 {
 	struct ssi_func	*e;
@@ -58,8 +59,7 @@ shttpd_register_ssi_func(struct shttpd_ctx *ctx, const char *name,
 	}
 }
 
-void
-_shttpd_ssi_func_destructor(struct llhead *lp)
+void _shttpd_ssi_func_destructor(struct llhead *lp)
 {
 	struct ssi_func	*e = LL_ENTRY(lp, struct ssi_func, link);
 
@@ -67,8 +67,7 @@ _shttpd_ssi_func_destructor(struct llhead *lp)
 	free(e);
 }
 
-static const struct ssi_func *
-find_ssi_func(struct ssi *ssi, const char *name)
+static const struct ssi_func *find_ssi_func(struct ssi *ssi, const char *name)
 {
 	struct ssi_func	*e;
 	struct llhead	*lp;
@@ -82,8 +81,7 @@ find_ssi_func(struct ssi *ssi, const char *name)
 	return (NULL);
 }
 
-static void
-call(struct ssi *ssi, const char *name,
+static void call(struct ssi *ssi, const char *name,
 		struct shttpd_arg *arg, char *buf, int len)
 {
 	const struct ssi_func	*ssi_func;
@@ -109,8 +107,7 @@ call(struct ssi *ssi, const char *name,
 	}
 }
 
-static int
-evaluate(struct ssi *ssi, const char *name)
+static int evaluate(struct ssi *ssi, const char *name)
 {
 	struct shttpd_arg	arg;
 
@@ -119,8 +116,7 @@ evaluate(struct ssi *ssi, const char *name)
 	return (arg.flags & SHTTPD_SSI_EVAL_TRUE);
 }
 
-static void
-pass(struct ssi_inc *inc, void *buf, int *n)
+static void pass(struct ssi_inc *inc, void *buf, int *n)
 {
 	if (inc->cond == SSI_GO) {
 		(void) memcpy(buf, inc->buf, inc->nbuf);
@@ -130,8 +126,7 @@ pass(struct ssi_inc *inc, void *buf, int *n)
 	inc->state = SSI_PASS;
 }
 
-static int
-get_path(struct conn *conn, const char *src,
+static int get_path(struct conn *conn, const char *src,
 		int src_len, char *dst, int dst_len)
 {
 	static struct vec	accepted[] = {
@@ -170,8 +165,7 @@ get_path(struct conn *conn, const char *src,
 	return (0);
 }
 
-static void
-do_include(struct ssi *ssi)
+static void do_include(struct ssi *ssi)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 	char		buf[FILENAME_MAX];
@@ -199,8 +193,7 @@ do_include(struct ssi *ssi)
 	}
 }
 
-static char *
-trim_spaces(struct ssi_inc *inc)
+static char * trim_spaces(struct ssi_inc *inc)
 {
 	char	*p = inc->buf + inc->nbuf - 2;
 
@@ -216,8 +209,7 @@ trim_spaces(struct ssi_inc *inc)
 	return (p);
 }
 
-static void
-do_if(struct ssi *ssi)
+static void do_if(struct ssi *ssi)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 	char		*name = trim_spaces(inc);
@@ -225,8 +217,7 @@ do_if(struct ssi *ssi)
 	inc->cond = evaluate(ssi, name) ? SSI_GO : SSI_STOP;
 }
 
-static void
-do_elif(struct ssi *ssi)
+static void do_elif(struct ssi *ssi)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 	char		*name = trim_spaces(inc);
@@ -236,22 +227,19 @@ do_elif(struct ssi *ssi)
 	else
 		inc->cond = SSI_STOP;
 }
-static void
-do_endif(struct ssi *ssi)
+static void do_endif(struct ssi *ssi)
 {
 	ssi->incs[ssi->nest].cond = SSI_GO;
 }
 
-static void
-do_else(struct ssi *ssi)
+static void do_else(struct ssi *ssi)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 
 	inc->cond = inc->cond == SSI_GO ? SSI_STOP : SSI_GO;
 }
 
-static void
-do_call2(struct ssi *ssi, char *buf, int len, int *n)
+static void do_call2(struct ssi *ssi, char *buf, int len, int *n)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 	struct shttpd_arg	arg;
@@ -262,8 +250,7 @@ do_call2(struct ssi *ssi, char *buf, int len, int *n)
 		inc->state = SSI_PASS;
 }
 
-static void
-do_call(struct ssi *ssi, char *buf, int len, int *n)
+static void do_call(struct ssi *ssi, char *buf, int len, int *n)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 	char		*name = trim_spaces(inc);
@@ -275,8 +262,7 @@ do_call(struct ssi *ssi, char *buf, int len, int *n)
 	}
 }
 
-static void
-do_exec2(struct ssi *ssi, char *buf, int len, int *n)
+static void do_exec2(struct ssi *ssi, char *buf, int len, int *n)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 	int		i, ch;
@@ -293,8 +279,7 @@ do_exec2(struct ssi *ssi, char *buf, int len, int *n)
 	}
 }
 
-static void
-do_exec(struct ssi *ssi, char *buf, int len, int *n)
+static void do_exec(struct ssi *ssi, char *buf, int len, int *n)
 {
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
 	char		cmd[sizeof(inc->buf)], *e, *p;
@@ -330,8 +315,7 @@ static const struct ssi_cmd {
 	{{NULL,		0}, NULL	}
 };
 
-static void
-do_command(struct ssi *ssi, char *buf, size_t len, int *n)
+static void do_command(struct ssi *ssi, char *buf, size_t len, int *n)
 {
 	struct ssi_inc		*inc = ssi->incs + ssi->nest;
 	const struct ssi_cmd	*cmd;
@@ -353,8 +337,7 @@ do_command(struct ssi *ssi, char *buf, size_t len, int *n)
 	inc->nbuf = 0;
 }
 
-static int
-read_ssi(struct stream *stream, void *vbuf, size_t len)
+static int read_ssi(struct stream *stream, void *vbuf, size_t len)
 {
 	struct ssi	*ssi = stream->conn->ssi;
 	struct ssi_inc	*inc = ssi->incs + ssi->nest;
@@ -429,8 +412,7 @@ again:
 	return (n);
 }
 
-static void
-close_ssi(struct stream *stream)
+static void close_ssi(struct stream *stream)
 {
 	struct ssi	*ssi = stream->conn->ssi;
 	size_t		i;
@@ -445,8 +427,7 @@ close_ssi(struct stream *stream)
 	free(ssi);
 }
 
-void
-_shttpd_do_ssi(struct conn *c)
+void _shttpd_do_ssi(struct conn *c)
 {
 	char		date[64];
 	struct ssi	*ssi;
