@@ -1463,7 +1463,7 @@ set_acl(struct shttpd_ctx *ctx, const char *s)
 #ifndef NO_SSL
 /*
  * Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
- * 动态加载ssl库
+ * 动态加载ssl库,并初始化ssl相关
  */
 static int set_ssl(struct shttpd_ctx *ctx, const char *pem)
 {

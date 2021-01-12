@@ -323,7 +323,9 @@ signal_handler(int sig_num)
 		break;
 	}
 }
-
+/**
+ * 例子打开程序
+*/
 int main(int argc, char *argv[])
 {
 	int			data = 1234567;
