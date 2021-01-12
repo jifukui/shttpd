@@ -1852,8 +1852,12 @@ static void process_command_line_arguments(struct shttpd_ctx *ctx, char *argv[])
 
 	/* First find out, which config file to open */
 	for (i = 1; argv[i] != NULL && argv[i][0] == '-'; i += 2)
+	{
 		if (argv[i + 1] == NULL)
+		{
 			_shttpd_usage(argv[0]);
+		}
+	}
 
 	if (argv[i] != NULL && argv[i + 1] != NULL) {
 		/* More than one non-option arguments are given w*/
@@ -1874,8 +1878,10 @@ static void process_command_line_arguments(struct shttpd_ctx *ctx, char *argv[])
 
 	/* If config file was set in command line and open failed, exit */
 	if (fp == NULL && argv[i] != NULL)
+	{
 		_shttpd_elog(E_FATAL, NULL, "cannot open config file %s: %s",
 		    config_file, strerror(errno));
+	}
 
 	if (fp != NULL) {
 
@@ -1888,11 +1894,15 @@ static void process_command_line_arguments(struct shttpd_ctx *ctx, char *argv[])
 
 			/* Ignore empty lines and comments */
 			if (line[0] == '#' || line[0] == '\n')
+			{
 				continue;
+			}
 
 			if (sscanf(line, "%s %[^\n#]", opt, val) != 2)
+			{
 				_shttpd_elog(E_FATAL, NULL, "line %d in %s is invalid",
 				    line_no, config_file);
+			}
 
 			set_opt(ctx, opt, val);
 		}
@@ -1902,7 +1912,9 @@ static void process_command_line_arguments(struct shttpd_ctx *ctx, char *argv[])
 
 	/* Now pass through the command line options */
 	for (i = 1; argv[i] != NULL && argv[i][0] == '-'; i += 2)
+	{
 		set_opt(ctx, &argv[i][1], argv[i + 1]);
+	}
 }
 /**
  * http服务器的初始化
@@ -1912,6 +1924,11 @@ struct shttpd_ctx * shttpd_init(int argc, char *argv[])
 	struct shttpd_ctx	*ctx;
 	struct tm		*tm;
 	const struct opt	*o;
+#ifdef _DEBUG
+	printf("init have debug\r\n");
+#else
+	printf("init have not debug\r\n");
+#endif
 	//为shttpd_ctx对象分配空间
 	if ((ctx = calloc(1, sizeof(*ctx))) == NULL)
 	{
