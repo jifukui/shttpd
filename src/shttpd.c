@@ -34,6 +34,7 @@ const struct vec _shttpd_known_http_methods[] = {
  * This structure tells how HTTP headers must be parsed.
  * Used by parse_headers() function.
  */
+/**计算结构体中此元素的偏移位置*/
 #define	OFFSET(x)	offsetof(struct headers, x)
 /**
  * 支持的请求头
@@ -63,8 +64,12 @@ int _shttpd_is_true(const char *str)
 	const char		**p;
 
 	for (p = trues; *p != NULL; p++)
+	{
 		if (str && !strcmp(str, *p))
+		{
 			return (TRUE);
+		}
+	}
 
 	return (FALSE);
 }
@@ -194,16 +199,26 @@ static int shttpd_open_listening_port(int port)
 	sa.u.sin.sin_addr.s_addr	= htonl(INADDR_ANY);
 
 	if ((sock = socket(PF_INET, SOCK_STREAM, 6)) == -1)
+	{
 		goto fail;
+	}
 	if (_shttpd_set_non_blocking_mode(sock) != 0)
+	{
 		goto fail;
+	}
 	if (setsockopt(sock, SOL_SOCKET,
 	    SO_REUSEADDR,(char *) &on, sizeof(on)) != 0)
+	{
 		goto fail;
+	}
 	if (bind(sock, &sa.u.sa, sa.len) < 0)
+	{
 		goto fail;
+	}
 	if (listen(sock, 128) != 0)
+	{
 		goto fail;
+	}
 
 #ifndef _WIN32
 	(void) fcntl(sock, F_SETFD, FD_CLOEXEC);
@@ -212,7 +227,9 @@ static int shttpd_open_listening_port(int port)
 	return (sock);
 fail:
 	if (sock != -1)
+	{
 		(void) closesocket(sock);
+	}
 	_shttpd_elog(E_LOG, NULL, "open_listening_port(%d): %s", port, strerror(errno));
 	return (-1);
 }
@@ -782,6 +799,7 @@ static void add_socket(struct worker *worker, int sock, int is_ssl)
 	struct usa		sa;
 	int			l = IS_TRUE(ctx, OPT_INETD) ? E_FATAL : E_LOG;
 #if !defined(NO_SSL)
+	//对于定义了SSL的处理
 	SSL		*ssl = NULL;
 #else
 	is_ssl = is_ssl;	/* supress warnings */
@@ -791,7 +809,9 @@ static void add_socket(struct worker *worker, int sock, int is_ssl)
 	(void) _shttpd_set_non_blocking_mode(sock);
 
 	if (getpeername(sock, &sa.u.sa, &sa.len)) {
+	{
 		_shttpd_elog(l, NULL, "add_socket: %s", strerror(errno));
+	}
 #if !defined(NO_SSL)
 	} else if (is_ssl && (ssl = SSL_new(ctx->ssl_ctx)) == NULL) {
 		_shttpd_elog(l, NULL, "add_socket: SSL_new: %s", strerror(ERRNO));
@@ -804,7 +824,9 @@ static void add_socket(struct worker *worker, int sock, int is_ssl)
 	} else if ((c = calloc(1, sizeof(*c) + 2 * URI_MAX)) == NULL) {
 #if !defined(NO_SSL)
 		if (ssl)
+		{
 			SSL_free(ssl);
+		}
 #endif /* NO_SSL */
 		(void) closesocket(sock);
 		_shttpd_elog(l, NULL, "add_socket: calloc: %s", strerror(ERRNO));
@@ -849,7 +871,7 @@ static void add_socket(struct worker *worker, int sock, int is_ssl)
 	}
 }
 /**
- * 
+ * 获取下一个工作链表中的link值，即获取链表头
 */
 static struct worker * first_worker(struct shttpd_ctx *ctx)
 {
@@ -878,21 +900,22 @@ static void pass_socket(struct shttpd_ctx *ctx, int sock, int is_ssl)
 	(void) send(lazy->ctl[1], (void *) buf, sizeof(buf), 0);
 }
 /**
- * 设置端口
+ * 设置端口参数
 */
 static int set_ports(struct shttpd_ctx *ctx, const char *p)
 {
 	int		sock, len, is_ssl, port;
 	struct listener	*l;
 
-
+	//释放所有的监听链表
 	free_list(&ctx->listeners, &listener_destructor);
 
 	FOR_EACH_WORD_IN_LIST(p, len) {
-
+		//判断传入的参数是否带s
 		is_ssl	= p[len - 1] == 's' ? 1 : 0;
+		//获取端口号
 		port	= atoi(p);
-
+		//监听端口失败处理
 		if ((sock = shttpd_open_listening_port(port)) == -1) {
 			_shttpd_elog(E_LOG, NULL, "cannot open port %d", port);
 			goto fail;
@@ -1123,7 +1146,8 @@ static void process_connection(struct conn *c, int remote_ready, int local_ready
 		connection_desctructor(&c->link);
 }
 /**
- * 工作者数量
+ * 工作者数量，
+ * 如果options的第23个的值不真值就返回1
 */
 static int num_workers(const struct shttpd_ctx *ctx)
 {
@@ -1150,6 +1174,7 @@ static void handle_connected_socket(struct shttpd_ctx *ctx,
 	} else if (num_workers(ctx) > 1) {
 		pass_socket(ctx, sock, is_ssl);
 	} else {
+		DBG(" handle_connected_socket add_socket %d\r\n",is_ssl);
 		add_socket(first_worker(ctx), sock, is_ssl);
 	}
 }
@@ -1188,15 +1213,19 @@ static int multiplex_worker_sockets(const struct worker *worker, int *max_fd,
 	int		nowait = FALSE;
 
 	/* Add control socket */
+	//将worker->ctl[0]添加到读集合
 	add_to_set(worker->ctl[0], read_set, max_fd);
 
 	/* Multiplex streams */
+	//遍历工作对象的连接链表
 	LL_FOREACH(&worker->connections, lp) {
 		c = LL_ENTRY(lp, struct conn, link);
 		
 		/* If there is a space in remote IO, check remote socket */
 		if (io_space_len(&c->rem.io))
+		{
 			add_to_set(c->rem.chan.fd, read_set, max_fd);
+		}
 
 #if !defined(NO_CGI)
 		/*
@@ -1205,7 +1234,9 @@ static int multiplex_worker_sockets(const struct worker *worker, int *max_fd,
 		 */
 		if (io_space_len(&c->loc.io) && (c->loc.flags & FLAG_R) &&
 		    c->loc.io_class == &_shttpd_io_cgi)
+		{
 			add_to_set(c->loc.chan.fd, read_set, max_fd);
+		}
 
 		/*
 		 * If there is some data read from remote socket, and
@@ -1213,7 +1244,9 @@ static int multiplex_worker_sockets(const struct worker *worker, int *max_fd,
 		 */
 		if (io_data_len(&c->rem.io) && (c->loc.flags & FLAG_W) &&
 		    c->loc.io_class == &_shttpd_io_cgi)
+		{
 			add_to_set(c->loc.chan.fd, write_set, max_fd);
+		}
 #endif /* NO_CGI */
 
 		/*
@@ -1221,18 +1254,24 @@ static int multiplex_worker_sockets(const struct worker *worker, int *max_fd,
 		 * remote socket for write availability
 		 */
 		if (io_data_len(&c->loc.io) && !(c->loc.flags & FLAG_SUSPEND))
+		{
 			add_to_set(c->rem.chan.fd, write_set, max_fd);
+		}
 
 		/*
 		 * Set select wait interval to zero if FLAG_ALWAYS_READY set
 		 */
 		if (io_space_len(&c->loc.io) && (c->loc.flags & FLAG_R) &&
 		    (c->loc.flags & FLAG_ALWAYS_READY))
+		{
 			nowait = TRUE;
+		}
 		
 		if (io_data_len(&c->rem.io) && (c->loc.flags & FLAG_W) &&
 		    (c->loc.flags & FLAG_ALWAYS_READY))
+		{
 			nowait = TRUE;
+		}
 	}
 
 	return (nowait);
@@ -1247,9 +1286,10 @@ int shttpd_join(struct shttpd_ctx *ctx,fd_set *read_set, fd_set *write_set, int 
 	int		nowait = FALSE;
 	int works;
 	/* Add listening sockets to the read set */
+	//遍历监听链表，获取监听对象的link对象的值
 	LL_FOREACH(&ctx->listeners, lp) {
 		l = LL_ENTRY(lp, struct listener, link);
-		//将此文件描述否添加到读集合
+		//将此文件描述符添加到读集合
 		add_to_set(l->sock, read_set, max_fd);
 		DBG(("FD_SET(%d) (listening)", l->sock));
 	}
@@ -1257,12 +1297,13 @@ int shttpd_join(struct shttpd_ctx *ctx,fd_set *read_set, fd_set *write_set, int 
 	 * 如果当前的工作个数为1
 	*/
 	works = num_workers(ctx);
-	DBG(("the works is %d\r\n", works));
+	// DBG(("the works is %d\r\n", works));
 	if (works == 1)
 	{
+		//获取工作链表头
 		nowait = multiplex_worker_sockets(first_worker(ctx), max_fd,read_set, write_set);
 	}
-	DBG(("the nowait is %d\r\n", nowait));
+	// DBG(("the nowait is %d\r\n", nowait));
 	return (nowait);
 }
 
@@ -1279,6 +1320,7 @@ static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 			switch (cmd) {
 			case CTL_PASS_SOCKET:
 				(void)recv(sock, (void *) &skt, sizeof(skt), 0);
+				DBG(" process_worker_sockets add_socket %d\r\n",skt[1]);
 				add_socket(worker, skt[0], skt[1]);
 				break;
 			case CTL_WAKEUP:
@@ -1308,7 +1350,10 @@ static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 /*
  * One iteration of server loop. This is the core of the data exchange.
  */
-/***/
+/**
+ * 服务器的轮询
+ * 
+*/
 void shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 {
 	struct llhead	*lp;
@@ -1321,7 +1366,7 @@ void shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 	//清空读写集合
 	FD_ZERO(&read_set);
 	FD_ZERO(&write_set);
-	//
+	//将当前ctx中的处于监听状态的对象添加到读集合
 	if (shttpd_join(ctx, &read_set, &write_set, &max_fd))
 	{
 		milliseconds = 0;
@@ -1440,6 +1485,7 @@ static int set_inetd(struct shttpd_ctx *ctx, const char *flag)
 	if (_shttpd_is_true(flag)) {
 		shttpd_set_option(ctx, "ports", NULL);
 		(void) freopen("/dev/null", "a", stderr);
+		DBG(" set_inetd add_socket\r\n");
 		add_socket(first_worker(ctx), 0, 0);
 	}
 
@@ -1476,6 +1522,7 @@ static int set_acl(struct shttpd_ctx *ctx, const char *s)
 	int		len, a, b, c, d, n, mask;
 
 	/* Delete the old ACLs if any */
+	//释放所有的访问链表
 	free_list(&ctx->acl, acl_destructor);
 
 	FOR_EACH_WORD_IN_LIST(s, len) {
@@ -1519,6 +1566,7 @@ static int set_ssl(struct shttpd_ctx *ctx, const char *pem)
 	int		retval = FALSE;
 
 	/* Load SSL library dynamically */
+	//动态加载ssl库
 	printf("the ssl lib is %s\r\n",SSL_LIB);
 	if ((lib = dlopen(SSL_LIB, RTLD_LAZY)) == NULL) {
 		_shttpd_elog(E_LOG, NULL, "set_ssl: cannot load %s", SSL_LIB);
@@ -1526,10 +1574,12 @@ static int set_ssl(struct shttpd_ctx *ctx, const char *pem)
 	}
 
 	for (fp = ssl_sw; fp->name != NULL; fp++)
+	{
 		if ((fp->ptr.v_void = dlsym(lib, fp->name)) == NULL) {
 			_shttpd_elog(E_LOG, NULL,"set_ssl: cannot find %s", fp->name);
 			return (FALSE);
 		}
+	}
 
 	/* Initialize SSL crap */
 	SSL_library_init();
@@ -1556,7 +1606,9 @@ static int open_log_file(FILE **fpp, const char *path)
 	int	retval = TRUE;
 
 	if (*fpp != NULL)
+	{
 		(void) fclose(*fpp);
+	}
 
 	if (path == NULL) {
 		*fpp = NULL;
@@ -1582,9 +1634,8 @@ static int set_elog(struct shttpd_ctx *ctx, const char *path) {
 }
 /***/
 static void show_cfg_page(struct shttpd_arg *arg);
-
-static int
-set_cfg_uri(struct shttpd_ctx *ctx, const char *uri)
+/***/
+static int set_cfg_uri(struct shttpd_ctx *ctx, const char *uri)
 {
 	free_list(&ctx->registered_uris, &registered_uri_destructor);
 
@@ -1593,18 +1644,26 @@ set_cfg_uri(struct shttpd_ctx *ctx, const char *uri)
 
 	return (TRUE);
 }
-
+/**
+ * 添加工作对象
+*/
 static struct worker * add_worker(struct shttpd_ctx *ctx)
 {
 	struct worker	*worker;
-
+	//为工作者申请内存空间
 	if ((worker = calloc(1, sizeof(*worker))) == NULL)
+	{
 		_shttpd_elog(E_FATAL, NULL, "Cannot allocate worker");
+	}
+	//初始化工作链表
 	LL_INIT(&worker->connections);
+	//设置工作对象的ctx为当前ctx
 	worker->ctx = ctx;
+	//
 	(void) shttpd_socketpair(worker->ctl);
+	//将worker->link插入到ctx->workers的前面
 	LL_TAIL(&ctx->workers, &worker->link);
-
+	//返回创建的工作对象
 	return (worker);
 }
 
@@ -1619,10 +1678,14 @@ static void poll_worker(struct worker *worker, int milliseconds)
 	FD_ZERO(&write_set);
 
 	if (multiplex_worker_sockets(worker, &max_fd, &read_set, &write_set))
+	{
 		milliseconds = 0;
+	}
 
 	if (do_select(max_fd, &read_set, &write_set, milliseconds) < 0)
+	{
 		return;;
+	}
 
 	process_worker_sockets(worker, &read_set);
 }
@@ -1632,7 +1695,9 @@ static void worker_function(void *param)
 	struct worker *worker = param;
 
 	while (worker->exit_flag == 0)
+	{
 		poll_worker(worker, 1000 * 10);
+	}
 
 	free_list(&worker->connections, connection_desctructor);
 	free(worker);
@@ -1671,7 +1736,14 @@ static int set_workers(struct shttpd_ctx *ctx, const char *value)
 	return (TRUE);
 }
 #endif /* NO_THREADS */
-/***/
+/**
+ * 基础配置
+ * index 索引值
+ * name 在配置文件中的名称
+ * description 描述文字
+ * default_value 默认值
+ * setter 设置函数
+*/
 static const struct opt {
 	int		index;		/* Index in shttpd_ctx		*/
 	const char	*name;		/* Option name in config file	*/
@@ -1726,8 +1798,12 @@ static const struct opt * find_opt(const char *opt_name)
 	int	i;
 
 	for (i = 0; known_options[i].name != NULL; i++)
+	{
 		if (!strcmp(opt_name, known_options[i].name))
+		{
 			return (known_options + i);
+		}
+	}
 
 	_shttpd_elog(E_FATAL, NULL, "no such option: [%s]", opt_name);
 
@@ -1786,8 +1862,10 @@ static void show_cfg_page(struct shttpd_arg *arg)
 	    "<th colspan=2>Value</th></tr>");
 
 	if (opt_name[0] != '\0' && value[0] != '\0')
+	{
 		shttpd_printf(arg, "<p style='color: green'>Saved: %s=%s</p>",
 		    opt_name, value[0] ? value : "NULL");
+	}
 
 
 	for (o = known_options; o->name != NULL; o++) {
@@ -1938,7 +2016,7 @@ struct shttpd_ctx * shttpd_init(int argc, char *argv[])
 	{
 		_shttpd_elog(E_FATAL, NULL, "cannot allocate shttpd context");
 	}
-
+	//初始化几个链表
 	LL_INIT(&ctx->registered_uris);
 	LL_INIT(&ctx->error_handlers);
 	LL_INIT(&ctx->acl);
@@ -1948,16 +2026,20 @@ struct shttpd_ctx * shttpd_init(int argc, char *argv[])
 
 	/* Initialize options. First pass: set default option values */
 	for (o = known_options; o->name != NULL; o++)
+	{
 		ctx->options[o->index] = o->default_value ?
 			_shttpd_strdup(o->default_value) : NULL;
+	}
 
 	/* Second and third passes: config file and argv */
+	//处理命令行参数
 	if (argc > 0 && argv != NULL)
 	{
 		process_command_line_arguments(ctx, argv);
 	}
 
 	/* Call setter functions */
+	//如果参数有设置函数，调用设置函数
 	for (o = known_options; o->name != NULL; o++)
 	{
 		if (o->setter && ctx->options[o->index] != NULL)

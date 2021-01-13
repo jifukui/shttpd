@@ -13,18 +13,19 @@
 
 /*
  * Linked list macros.
+ * 链表对象
  */
 struct llhead {
 	struct llhead	*prev;
 	struct llhead	*next;
 };
-
+//初始化链表
 #define	LL_INIT(N)	((N)->next = (N)->prev = (N))
-
+//创建链表头
 #define LL_HEAD(H)	struct llhead H = { &H, &H }
-
+//获取链表的实例
 #define LL_ENTRY(P,T,N) ((T *)((char *)(P) - offsetof(T, N)))
-
+//向链表中添加数据
 #define	LL_ADD(H, N)							\
 	do {								\
 		((H)->next)->prev = (N);				\
@@ -40,18 +41,18 @@ struct llhead {
 		(N)->next = (H);					\
 		(H)->prev = (N);					\
 	} while (0)
-
+//从链表中删除数据
 #define	LL_DEL(N)							\
 	do {								\
 		((N)->next)->prev = ((N)->prev);			\
 		((N)->prev)->next = ((N)->next);			\
 		LL_INIT(N);						\
 	} while (0)
-
+//链表为空链表
 #define	LL_EMPTY(N)	((N)->next == (N))
-
+//链表遍历
 #define	LL_FOREACH(H,N)	for (N = (H)->next; N != (H); N = (N)->next)
-
+//安全的遍历链表
 #define LL_FOREACH_SAFE(H,N,T)						\
 	for (N = (H)->next, T = (N)->next; N != (H);			\
 			N = (T), T = (N)->next)

@@ -184,7 +184,14 @@ struct stream {
 #define	FLAG_ALWAYS_READY	64		/* File, dir, user_func	*/
 #define	FLAG_SUSPEND		128
 };
-
+/**
+ * 工作对象
+ * link 链表头
+ * num_conns 链接的数量
+ * exit_flag 
+ * ctx 上下文
+ * connections 连接链表
+*/
 struct worker {
 	struct llhead	link;
 	int		num_conns;	/* Num of active connections 	*/
@@ -193,7 +200,21 @@ struct worker {
 	struct shttpd_ctx *ctx;		/* Context reference		*/
 	struct llhead	connections;	/* List of connections		*/
 };
-
+/**
+ * 链接对象
+ * link
+ * worker
+ * ctx
+ * sa
+ * birth_time
+ * expire_time
+ * loc_port
+ * status
+ * method
+ * uri
+ * major_version
+ * minor_version
+*/
 struct conn {
 	struct llhead	link;		/* Connections chain		*/
 	struct worker	*worker;	/* Worker this conn belongs to	*/
@@ -258,9 +279,13 @@ struct shttpd_ctx {
 };
 /**
  * 监听结构体
+ * link链表的头
+ * http的正文内容
+ * sock监听的sock
+ * is_ssl是否是ssl
 */
 struct listener {
-	struct llhead		link;
+	struct llhead		link; 
 	struct shttpd_ctx	*ctx;	/* Context that socket belongs	*/
 	int			sock;	/* Listening socket		*/
 	int			is_ssl;	/* Should be SSL-ed		*/
