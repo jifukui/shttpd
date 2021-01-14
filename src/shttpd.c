@@ -1539,7 +1539,7 @@ static int set_inetd(struct shttpd_ctx *ctx, const char *flag)
 	if (_shttpd_is_true(flag)) {
 		shttpd_set_option(ctx, "ports", NULL);
 		(void) freopen("/dev/null", "a", stderr);
-		DBG(" set_inetd add_socket\r\n");
+		DBG(("set_inetd add_socket\r\n"));
 		add_socket(first_worker(ctx), 0, 0);
 	}
 
