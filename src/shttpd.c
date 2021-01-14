@@ -1204,7 +1204,7 @@ static void handle_connected_socket(struct shttpd_ctx *ctx,
 	} else if (num_workers(ctx) > 1) {
 		pass_socket(ctx, sock, is_ssl);
 	} else {
-		DBG(" handle_connected_socket add_socket %d\r\n",is_ssl);
+		DBG(("handle_connected_socket add_socket %d\r\n",is_ssl));
 		add_socket(first_worker(ctx), sock, is_ssl);
 	}
 }
@@ -1354,7 +1354,7 @@ static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 			switch (cmd) {
 			case CTL_PASS_SOCKET:
 				(void)recv(sock, (void *) &skt, sizeof(skt), 0);
-				DBG(" process_worker_sockets add_socket %d\r\n",skt[1]);
+				DBG((" process_worker_sockets add_socket %d\r\n",skt[1]));
 				add_socket(worker, skt[0], skt[1]);
 				break;
 			case CTL_WAKEUP:
