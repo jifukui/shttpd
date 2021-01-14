@@ -85,7 +85,9 @@ static void free_list(struct llhead *head, void (*dtor)(struct llhead *))
 		dtor(lp);
 	}
 }
-/***/
+/**
+ * 释放注册的监听器
+*/
 static void listener_destructor(struct llhead *lp)
 {
 	struct listener	*listener = LL_ENTRY(lp, struct listener, link);
@@ -93,7 +95,9 @@ static void listener_destructor(struct llhead *lp)
 	(void) closesocket(listener->sock);
 	free(listener);
 }
-/***/
+/**
+ * 释放注册的url
+*/
 static void registered_uri_destructor(struct llhead *lp)
 {
 	struct registered_uri *ruri = LL_ENTRY(lp, struct registered_uri, link);
@@ -101,7 +105,9 @@ static void registered_uri_destructor(struct llhead *lp)
 	free((void *) ruri->uri);
 	free(ruri);
 }
-/**访问链表描述符*/
+/**
+ * 访问链表描述符释放
+ * */
 static void acl_destructor(struct llhead *lp)
 {
 	struct acl	*acl = LL_ENTRY(lp, struct acl, link);
@@ -166,7 +172,9 @@ static const char * is_alias(struct shttpd_ctx *ctx, const char *uri,
 void _shttpd_stop_stream(struct stream *stream)
 {
 	if (stream->io_class != NULL && stream->io_class->close != NULL)
+	{
 		stream->io_class->close(stream);
+	}
 
 	stream->io_class= NULL;
 	stream->flags |= FLAG_CLOSED;
@@ -183,6 +191,7 @@ void _shttpd_stop_stream(struct stream *stream)
  */
 /**
  * 打开监听端口
+ * port为监听的端口
 */
 static int shttpd_open_listening_port(int port)
 {
@@ -197,11 +206,12 @@ static int shttpd_open_listening_port(int port)
 	sa.u.sin.sin_family		= AF_INET;
 	sa.u.sin.sin_port		= htons((uint16_t) port);
 	sa.u.sin.sin_addr.s_addr	= htonl(INADDR_ANY);
-
+	//创建socket
 	if ((sock = socket(PF_INET, SOCK_STREAM, 6)) == -1)
 	{
 		goto fail;
 	}
+	//设置为非阻塞模式
 	if (_shttpd_set_non_blocking_mode(sock) != 0)
 	{
 		goto fail;
@@ -545,13 +555,16 @@ static int get_path_info(struct conn *c, char *path, struct stat *stp)
 	char	*p, *e;
 
 	if (_shttpd_stat(path, stp) == 0)
+	{
 		return (0);
+	}
 
 	p = path + strlen(path);
 	e = path + strlen(c->ctx->options[OPT_ROOT]) + 2;
 	
 	/* Strip directory parts of the path one by one */
 	for (; p > e; p--)
+	{
 		if (*p == '/') {
 			*p = '\0';
 			if (!_shttpd_stat(path, stp) && !S_ISDIR(stp->st_mode)) {
@@ -561,10 +574,11 @@ static int get_path_info(struct conn *c, char *path, struct stat *stp)
 				*p = '/';
 			}
 		}
+	}
 
 	return (-1);
 }
-
+/***/
 static void decide_what_to_do(struct conn *c)
 {
 	char		path[URI_MAX], buf[1024], *root;
@@ -699,10 +713,12 @@ static int set_request_method(struct conn *c)
 
 	/* Set the request method */
 	for (v = _shttpd_known_http_methods; v->ptr != NULL; v++)
+	{
 		if (!memcmp(c->rem.io.buf, v->ptr, v->len)) {
 			c->method = v - _shttpd_known_http_methods;
 			break;
 		}
+	}
 
 	return (v->ptr == NULL);
 }
@@ -1116,12 +1132,18 @@ static void add_to_set(int fd, fd_set *set, int *max_fd)
 static void process_connection(struct conn *c, int remote_ready, int local_ready)
 {
 	/* Read from remote end if it is ready */
+	//如果远端准备好的处理
 	if (remote_ready && io_space_len(&c->rem.io))
+	{
 		read_stream(&c->rem);
+	}
 
 	/* If the request is not parsed yet, do so */
+	//
 	if (!(c->rem.flags & FLAG_HEADERS_PARSED))
+	{
 		parse_http_request(c);
+	}
 
 	DBG(("loc: %d [%.*s]", (int) io_data_len(&c->loc.io),
 	    (int) io_data_len(&c->loc.io), io_data(&c->loc.io)));
@@ -1130,20 +1152,28 @@ static void process_connection(struct conn *c, int remote_ready, int local_ready
 
 	/* Read from the local end if it is ready */
 	if (local_ready && io_space_len(&c->loc.io))
+	{
 		read_stream(&c->loc);
+	}
 
 	if (io_data_len(&c->rem.io) > 0 && (c->loc.flags & FLAG_W) &&
 	    c->loc.io_class != NULL && c->loc.io_class->write != NULL)
+	{
 		write_stream(&c->rem, &c->loc);
+	}
 
 	if (io_data_len(&c->loc.io) > 0 && c->rem.io_class != NULL)
-		write_stream(&c->loc, &c->rem); 
+	{
+		write_stream(&c->loc, &c->rem);
+	} 
 
 	/* Check whether we should close this connection */
 	if ((_shttpd_current_time > c->expire_time) ||
 	    (c->rem.flags & FLAG_CLOSED) ||
 	    ((c->loc.flags & FLAG_CLOSED) && !io_data_len(&c->loc.io)))
+	{
 		connection_desctructor(&c->link);
+	}
 }
 /**
  * 工作者数量，
@@ -1204,7 +1234,9 @@ static int do_select(int max_fd, fd_set *read_set, fd_set *write_set, int millis
 
 	return (n);
 }
-/***/
+/**
+ * 多路复用工作线程
+*/
 static int multiplex_worker_sockets(const struct worker *worker, int *max_fd,
 		fd_set *read_set, fd_set *write_set)
 {
@@ -1307,7 +1339,9 @@ int shttpd_join(struct shttpd_ctx *ctx,fd_set *read_set, fd_set *write_set, int 
 	return (nowait);
 }
 
-/***/
+/**
+ * 处理工作的socket
+*/
 static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 {
 	struct llhead	*lp, *tmp;
@@ -1402,7 +1436,9 @@ void shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 /*
  * Deallocate shttpd object, free up the resources
  */
-/***/
+/**
+ * 关闭服务器
+*/
 void shttpd_fini(struct shttpd_ctx *ctx)
 {
 	size_t	i;
@@ -1416,11 +1452,21 @@ void shttpd_fini(struct shttpd_ctx *ctx)
 #endif /* !NO_SSI */
 
 	for (i = 0; i < NELEMS(ctx->options); i++)
+	{
 		if (ctx->options[i] != NULL)
+		{
 			free(ctx->options[i]);
+		}
+	}
 
-	if (ctx->access_log)		(void) fclose(ctx->access_log);
-	if (ctx->error_log)		(void) fclose(ctx->error_log);
+	if (ctx->access_log)	
+	{
+		(void) fclose(ctx->access_log);
+	}
+	if (ctx->error_log)	
+	{
+		(void) fclose(ctx->error_log);
+	}
 
 	/* TODO: free SSL context */
 
@@ -1437,14 +1483,14 @@ int shttpd_socketpair(int sp[2])
 	struct sockaddr_in	sa;
 	int			sock, ret = -1;
 	socklen_t		len = sizeof(sa);
-
+	//初始化sp的值都为-1
 	sp[0] = sp[1] = -1;
-
+	//初始化网络参数
 	(void) memset(&sa, 0, sizeof(sa));
 	sa.sin_family 		= AF_INET;
 	sa.sin_port		= htons(0);
 	sa.sin_addr.s_addr	= htonl(INADDR_LOOPBACK);
-
+	//	创建一个socket并创建一个支持IPV6的socket
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) != -1 &&
 	    !bind(sock, (struct sockaddr *) &sa, len) &&
 	    !listen(sock, 1) &&
@@ -1459,9 +1505,13 @@ int shttpd_socketpair(int sp[2])
 
 		/* Failure, close descriptors */
 		if (sp[0] != -1)
+		{
 			(void) closesocket(sp[0]);
+		}
 		if (sp[1] != -1)
+		{
 			(void) closesocket(sp[1]);
+		}
 	}
 
 	(void) closesocket(sock);
@@ -1475,9 +1525,13 @@ int shttpd_socketpair(int sp[2])
 
 	return (ret);
 }
-/***/
+/**
+ * 
+*/
 static int isbyte(int n) { return (n >= 0 && n <= 255); }
-/***/
+/**
+ * 
+*/
 static int set_inetd(struct shttpd_ctx *ctx, const char *flag)
 {
 	ctx = NULL; /* Unused */
@@ -1640,7 +1694,9 @@ static int set_cfg_uri(struct shttpd_ctx *ctx, const char *uri)
 	free_list(&ctx->registered_uris, &registered_uri_destructor);
 
 	if (uri != NULL)
+	{
 		shttpd_register_uri(ctx, uri, &show_cfg_page, ctx);
+	}
 
 	return (TRUE);
 }
@@ -1822,12 +1878,16 @@ int shttpd_set_option(struct shttpd_ctx *ctx, const char *opt, const char *val)
 	/* Call option setter first, so it can use both new and old values */
 	//如果此属性的设置函数不为空调用此设置函数设置值
 	if (o->setter != NULL)
+	{
 		retval = o->setter(ctx, val);
+	}
 
 	/* Free old value if any */
 	//如果老的值存在则释放此值
 	if (ctx->options[o->index] != NULL)
+	{
 		free(ctx->options[o->index]);
+	}
 	
 	/* Set new option value */
 	//设置新的值
@@ -1835,7 +1895,9 @@ int shttpd_set_option(struct shttpd_ctx *ctx, const char *opt, const char *val)
 
 	return (retval);
 }
-/***/
+/**
+ * 显示配置界面
+*/
 static void show_cfg_page(struct shttpd_arg *arg)
 {
 	struct shttpd_ctx	*ctx = arg->user_data;
@@ -1843,10 +1905,12 @@ static void show_cfg_page(struct shttpd_arg *arg)
 	const struct opt	*o;
 
 	opt_name[0] = value[0] = '\0';
-
+	//对于请求方式是POST请求的处理
 	if (!strcmp(shttpd_get_env(arg, "REQUEST_METHOD"), "POST")) {
 		if (arg->flags & SHTTPD_MORE_POST_DATA)
+		{
 			return;
+		}
 		(void) shttpd_get_var("o", arg->in.buf, arg->in.len,
 		    opt_name, sizeof(opt_name));
 		(void) shttpd_get_var("v", arg->in.buf, arg->in.len,
@@ -1901,7 +1965,9 @@ void _shttpd_usage(const char *prog)
 	for (o = known_options; o->name != NULL; o++) {
 		(void) fprintf(stderr, "  -%s\t%s", o->name, o->description);
 		if (o->default_value != NULL)
+		{
 			fprintf(stderr, " (default: %s)", o->default_value);
+		}
 		fputc('\n', stderr);
 	}
 
@@ -2017,14 +2083,21 @@ struct shttpd_ctx * shttpd_init(int argc, char *argv[])
 		_shttpd_elog(E_FATAL, NULL, "cannot allocate shttpd context");
 	}
 	//初始化几个链表
+	//初始化url
 	LL_INIT(&ctx->registered_uris);
+	//初始化错误处理
 	LL_INIT(&ctx->error_handlers);
+	//初始化访问列表
 	LL_INIT(&ctx->acl);
+	//
 	LL_INIT(&ctx->ssi_funcs);
+	//初始化监听者
 	LL_INIT(&ctx->listeners);
+	//初始化工作者
 	LL_INIT(&ctx->workers);
 
 	/* Initialize options. First pass: set default option values */
+	//初始化配置参数
 	for (o = known_options; o->name != NULL; o++)
 	{
 		ctx->options[o->index] = o->default_value ?

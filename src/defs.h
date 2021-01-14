@@ -92,13 +92,18 @@ struct registered_uri {
  * User may want to handle certain errors. This structure holds the
  * handlers for corresponding error codes.
  */
+/**
+ * 错误处理结构
+*/
 struct error_handler {
 	struct llhead	link;
 	int		code;
 	union variant	callback;
 	void		*callback_data;
 };
-
+/**
+ * http头部结构
+*/
 struct http_header {
 	int		len;		/* Header name length		*/
 	int		type;		/* Header type			*/
@@ -129,7 +134,7 @@ struct headers {
 #include "ssl.h"
 
 /*
- * The communication channel
+ * 通信通道
  */
 union channel {
 	int		fd;		/* Regular static file		*/
@@ -155,6 +160,9 @@ struct stream;
  * IO class descriptor (file, directory, socket, SSL, CGI, etc)
  * These classes are defined in io_*.c files.
  */
+/**
+ * IO类
+*/
 struct io_class {
 	const char *name;
 	int (*read)(struct stream *, void *buf, size_t len);
@@ -258,6 +266,15 @@ enum {
 /*
  * SHTTPD context
  * http 上下文
+ * SSL_CTX SSL上下文
+ * registered_uris url 链表
+ * error_handlers 错误处理链表
+ * acl 访问链表
+ * listeners 监听链表
+ * workers 工作链表
+ * access_log 访问日志
+ * error_log 错误日志
+ * options 配置参数
  */
 struct shttpd_ctx {
 	SSL_CTX		*ssl_ctx;	/* SSL context ssl上下文			*/

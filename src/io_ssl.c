@@ -27,9 +27,10 @@ struct ssl_func	ssl_sw[] = {
 	{"SSL_CTX_use_certificate_file",{0}},
 	{NULL,				{0}}
 };
-
-void
-_shttpd_ssl_handshake(struct stream *stream)
+/**
+ * ssl的握手
+*/
+void _shttpd_ssl_handshake(struct stream *stream)
 {
 	int	n;
 
@@ -44,8 +45,7 @@ _shttpd_ssl_handshake(struct stream *stream)
 	}
 }
 
-static int
-read_ssl(struct stream *stream, void *buf, size_t len)
+static int read_ssl(struct stream *stream, void *buf, size_t len)
 {
 	int	nread = -1;
 
