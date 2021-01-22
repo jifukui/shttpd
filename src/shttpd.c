@@ -1030,7 +1030,7 @@ static void read_stream(struct stream *stream)
 static void write_stream(struct stream *from, struct stream *to)
 {
 	int	n, len;
-	DBG(("the write stream is %s\r\n",stream->io_class->name));
+	DBG(("the write stream is %s\r\n",from->io_class->name));
 	len = io_data_len(&from->io);
 	assert(len > 0);
 
@@ -1057,7 +1057,7 @@ static void connection_desctructor(struct llhead *lp)
 	struct conn		*c = LL_ENTRY(lp, struct conn, link);
 	static const struct vec	vec = {"close", 5};
 	int			do_close;
-	DBG(("the close stream is %s\r\n",stream->io_class->name));
+	DBG(("the close stream is %s\r\n",c->io_class->name));
 	DBG(("Disconnecting %d (%.*s)", c->rem.chan.sock,
 	    c->ch.connection.v_vec.len, c->ch.connection.v_vec.ptr));
 
