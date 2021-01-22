@@ -807,6 +807,9 @@ static void parse_http_request(struct conn *c)
 }
 /**
  * 添加socket
+ * worker:工作的socket
+ * socket:socket描述符
+ * is_ssl:是否是ssl
 */
 static void add_socket(struct worker *worker, int sock, int is_ssl)
 {
@@ -880,6 +883,7 @@ static void add_socket(struct worker *worker, int sock, int is_ssl)
 			c->rem.io_class	= &_shttpd_io_ssl;
 			c->rem.chan.ssl.sock = sock;
 			c->rem.chan.ssl.ssl = ssl;
+			DBG(("start ssl handshake\r\n"));
 			_shttpd_ssl_handshake(&c->rem);
 		}
 #endif /* NO_SSL */
@@ -922,7 +926,9 @@ static void pass_socket(struct shttpd_ctx *ctx, int sock, int is_ssl)
 	(void) send(lazy->ctl[1], (void *) buf, sizeof(buf), 0);
 }
 /**
- * 设置端口参数
+ * 设置服务器监听端口
+ * ctx:上下文
+ * p"参数值
 */
 static int set_ports(struct shttpd_ctx *ctx, const char *p)
 {
@@ -955,7 +961,7 @@ static int set_ports(struct shttpd_ctx *ctx, const char *p)
 			l->sock	= sock;
 			l->ctx	= ctx;
 			LL_TAIL(&ctx->listeners, &l->link);
-			DBG(("shttpd_listen: added socket %d", sock));
+			DBG(("set port %d success", port));
 		}
 	}
 
@@ -1139,6 +1145,7 @@ static void process_connection(struct conn *c, int remote_ready, int local_ready
 {
 	/* Read from remote end if it is ready */
 	//如果远端准备好的处理
+	DBG(("start process connected\r\n"));
 	if (remote_ready && io_space_len(&c->rem.io))
 	{
 		read_stream(&c->rem);
@@ -1151,10 +1158,10 @@ static void process_connection(struct conn *c, int remote_ready, int local_ready
 		parse_http_request(c);
 	}
 
-	DBG(("loc: %d [%.*s]", (int) io_data_len(&c->loc.io),
+	/*DBG(("loc: %d [%.*s]", (int) io_data_len(&c->loc.io),
 	    (int) io_data_len(&c->loc.io), io_data(&c->loc.io)));
 	DBG(("rem: %d [%.*s]", (int) io_data_len(&c->rem.io),
-	    (int) io_data_len(&c->rem.io), io_data(&c->rem.io)));
+	    (int) io_data_len(&c->rem.io), io_data(&c->rem.io)));*/
 
 	/* Read from the local end if it is ready */
 	if (local_ready && io_space_len(&c->loc.io))
@@ -1191,7 +1198,7 @@ static int num_workers(const struct shttpd_ctx *ctx)
 	return (p ? atoi(p) : 1);
 }
 /**
- * 处理连接的socket
+ * 对于客户端处理连接的socket
 */
 static void handle_connected_socket(struct shttpd_ctx *ctx,
 		struct usa *sap, int sock, int is_ssl)
@@ -1210,7 +1217,7 @@ static void handle_connected_socket(struct shttpd_ctx *ctx,
 	} else if (num_workers(ctx) > 1) {
 		pass_socket(ctx, sock, is_ssl);
 	} else {
-		DBG(("handle_connected_socket add_socket %d\r\n",is_ssl));
+		DBG(("handle_connected_socket add_socket %d and is ssl %d\r\n",sock,is_ssl));
 		add_socket(first_worker(ctx), sock, is_ssl);
 	}
 }
@@ -1347,6 +1354,8 @@ int shttpd_join(struct shttpd_ctx *ctx,fd_set *read_set, fd_set *write_set, int 
 
 /**
  * 处理工作的socket
+ * worker:
+ * read_set:
 */
 static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 {
@@ -1357,6 +1366,7 @@ static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 	/* Check if new socket is passed to us over the control socket */
 	if (FD_ISSET(worker->ctl[0], read_set))
 		while (recv(sock, (void *) &cmd, sizeof(cmd), 0) == sizeof(cmd))
+			DBG(("the cmd status is %d\r\n",cmd));
 			switch (cmd) {
 			case CTL_PASS_SOCKET:
 				(void)recv(sock, (void *) &skt, sizeof(skt), 0);
@@ -1435,6 +1445,7 @@ void shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 
 	if (num_workers(ctx) == 1)
 	{
+		DBG(("have handler socket\r\n"));
 		process_worker_sockets(first_worker(ctx), &read_set);
 	}
 }

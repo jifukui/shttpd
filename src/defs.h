@@ -175,6 +175,16 @@ struct io_class {
  * opened file, socket, etc. The 'read' and 'write' methods are
  * determined by a communication channel.
  */
+/**
+ * 流对象
+ * conn
+ * channel
+ * io
+ * io_class
+ * headers_len
+ * content_len
+ * flags
+*/
 struct stream {
 	struct conn		*conn;
 	union channel		chan;		/* Descriptor		*/

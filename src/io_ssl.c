@@ -32,6 +32,7 @@ struct ssl_func	ssl_sw[] = {
 */
 void _shttpd_ssl_handshake(struct stream *stream)
 {
+	DBG(("SSL _shttpd_ssl_handshake"));
 	int	n;
 
 	if ((n = SSL_accept(stream->chan.ssl.ssl)) == 1) {
@@ -44,9 +45,10 @@ void _shttpd_ssl_handshake(struct stream *stream)
 		DBG(("SSL_accept error %d", n));
 	}
 }
-
+/***/
 static int read_ssl(struct stream *stream, void *buf, size_t len)
 {
+	DBG(("SSL read_ssl"));
 	int	nread = -1;
 
 	assert(stream->chan.ssl.ssl != NULL);
@@ -63,6 +65,7 @@ static int read_ssl(struct stream *stream, void *buf, size_t len)
 static int
 write_ssl(struct stream *stream, const void *buf, size_t len)
 {
+	DBG(("SSL write_ssl"));
 	assert(stream->chan.ssl.ssl != NULL);
 	return (SSL_write(stream->chan.ssl.ssl, buf, len));
 }
@@ -70,6 +73,7 @@ write_ssl(struct stream *stream, const void *buf, size_t len)
 static void
 close_ssl(struct stream *stream)
 {
+	DBG(("SSL close_ssl"));
 	assert(stream->chan.ssl.sock != -1);
 	assert(stream->chan.ssl.ssl != NULL);
 	(void) closesocket(stream->chan.ssl.sock);
