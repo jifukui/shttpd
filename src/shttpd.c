@@ -971,30 +971,39 @@ fail:
 	return (FALSE);
 }
 /**
- * 读流
+ * 读远端的数据流
+ * stream：流对象
 */
 static void read_stream(struct stream *stream)
 {
 	int	n, len;
-
+	DBG(("the read stream is %s\r\n",stream->io_class->name));
 	len = io_space_len(&stream->io);
 	assert(len > 0);
 
 	/* Do not read more that needed */
 	if (stream->content_len > 0 &&
 	    stream->io.total + len > stream->content_len)
+	{
 		len = stream->content_len - stream->io.total;
+	}
 
 	/* Read from underlying channel */
 	assert(stream->io_class != NULL);
 	n = stream->io_class->read(stream, io_space(&stream->io), len);
 
 	if (n > 0)
+	{
 		io_inc_head(&stream->io, n);
+	}
 	else if (n == -1 && (ERRNO == EINTR || ERRNO == EWOULDBLOCK))
+	{
 		n = n;	/* Ignore EINTR and EAGAIN */
+	}
 	else if (!(stream->flags & FLAG_DONT_CLOSE))
+	{
 		_shttpd_stop_stream(stream);
+	}
 
 	DBG(("read_stream (%d %s): read %d/%d/%lu bytes (errno %d)",
 	    stream->conn->rem.chan.sock,
@@ -1021,7 +1030,7 @@ static void read_stream(struct stream *stream)
 static void write_stream(struct stream *from, struct stream *to)
 {
 	int	n, len;
-
+	DBG(("the write stream is %s\r\n",stream->io_class->name));
 	len = io_data_len(&from->io);
 	assert(len > 0);
 
@@ -1048,7 +1057,7 @@ static void connection_desctructor(struct llhead *lp)
 	struct conn		*c = LL_ENTRY(lp, struct conn, link);
 	static const struct vec	vec = {"close", 5};
 	int			do_close;
-
+	DBG(("the close stream is %s\r\n",stream->io_class->name));
 	DBG(("Disconnecting %d (%.*s)", c->rem.chan.sock,
 	    c->ch.connection.v_vec.len, c->ch.connection.v_vec.ptr));
 
@@ -1366,7 +1375,7 @@ static void process_worker_sockets(struct worker *worker, fd_set *read_set)
 	/* Check if new socket is passed to us over the control socket */
 	if (FD_ISSET(worker->ctl[0], read_set))
 		while (recv(sock, (void *) &cmd, sizeof(cmd), 0) == sizeof(cmd))
-			DBG(("the cmd status is %d\r\n",cmd));
+			//DBG(("the cmd status is %d\r\n",cmd));
 			switch (cmd) {
 			case CTL_PASS_SOCKET:
 				(void)recv(sock, (void *) &skt, sizeof(skt), 0);

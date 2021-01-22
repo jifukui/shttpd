@@ -53,6 +53,7 @@ typedef unsigned long big_int_t;	/* Type for Content-Length	*/
 /*
  * Unified socket address
  */
+/***/
 struct usa {
 	socklen_t len;
 	union {
@@ -162,6 +163,10 @@ struct stream;
  */
 /**
  * IO类
+ * name:类的名称
+ * write:类的写函数
+ * read:类的读函数
+ * close:类的关闭函数
 */
 struct io_class {
 	const char *name;
