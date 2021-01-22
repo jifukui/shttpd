@@ -823,22 +823,27 @@ static void add_socket(struct worker *worker, int sock, int is_ssl)
 
 	sa.len = sizeof(sa.u.sin);
 	(void) _shttpd_set_non_blocking_mode(sock);
-
-	if (getpeername(sock, &sa.u.sa, &sa.len)) {
+	//获取对端的信息
+	if (getpeername(sock, &sa.u.sa, &sa.len)) 
 	{
-		_shttpd_elog(l, NULL, "add_socket: %s", strerror(errno));
-	}
+		printf("getpeername info error\r\n");
+		{
+			_shttpd_elog(l, NULL, "add_socket: %s", strerror(errno));
+		}
 #if !defined(NO_SSL)
 	} else if (is_ssl && (ssl = SSL_new(ctx->ssl_ctx)) == NULL) {
+		//如果是ssl被定义且创建ssl对象失败的处理
 		_shttpd_elog(l, NULL, "add_socket: SSL_new: %s", strerror(ERRNO));
 		(void) closesocket(sock);
 	} else if (is_ssl && SSL_set_fd(ssl, sock) == 0) {
+		//如果是ssl且将ssl加到集合中失败的处理
 		_shttpd_elog(l, NULL, "add_socket: SSL_set_fd: %s", strerror(ERRNO));
 		(void) closesocket(sock);
 		SSL_free(ssl);
 #endif /* NO_SSL */
 	} else if ((c = calloc(1, sizeof(*c) + 2 * URI_MAX)) == NULL) {
 #if !defined(NO_SSL)
+		//如果申请内存空间失败的处理
 		if (ssl)
 		{
 			SSL_free(ssl);
@@ -847,6 +852,7 @@ static void add_socket(struct worker *worker, int sock, int is_ssl)
 		(void) closesocket(sock);
 		_shttpd_elog(l, NULL, "add_socket: calloc: %s", strerror(ERRNO));
 	} else {
+		printf("add socket success\r\n");
 		c->rem.conn	= c->loc.conn = c;
 		c->ctx		= ctx;
 		c->worker	= worker;
