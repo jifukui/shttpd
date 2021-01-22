@@ -1057,7 +1057,7 @@ static void connection_desctructor(struct llhead *lp)
 	struct conn		*c = LL_ENTRY(lp, struct conn, link);
 	static const struct vec	vec = {"close", 5};
 	int			do_close;
-	DBG(("the close stream is %s\r\n",c->rem->io_class->name));
+	DBG(("the close stream is %s\r\n",c->loc.io_class->name));
 	DBG(("Disconnecting %d (%.*s)", c->rem.chan.sock,
 	    c->ch.connection.v_vec.len, c->ch.connection.v_vec.ptr));
 
